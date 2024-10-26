@@ -7,7 +7,7 @@ class Centre {
   static late double screenHeight;
 
   // Example
-  static Color red = const Color.fromARGB(255, 255, 103, 93);
+  static Color bgColor = const Color.fromARGB(255, 221, 212, 211);
 
   // Example
   static final todoText = TextStyle(

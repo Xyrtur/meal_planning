@@ -1,12 +1,11 @@
 /* 
+ * Provided to: Recipe page, GroceryList page
  * Category to isExpanded bool
  *  expandedevent(category )
  * 
  *  expandedstate
- * updateGroceryCategories
- *  categoriesUpdated
  * 
- * updateGroceryItem
+ * updateGroceryItem(s)
  * only the category can be changed
  * 
  * addGroceryItem
