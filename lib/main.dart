@@ -1,35 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'package:meal_planning/models/grocery_item.dart';
+import 'package:meal_planning/models/recipe.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+void main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(GroceryItemAdapter());
+  Hive.registerAdapter(RecipeAdapter());
+
+  await Hive.openBox<Recipe>('recipesBox');
+  await Hive.openBox<dynamic>('mealPlanningBox');
+
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  // Sentry code to get emailed exceptions
+  await SentryFlutter.init((options) {
+    options.dsn =
+        'https://8457a9015b0f4e978bd2078b054503cb@o4505104841965568.ingest.sentry.io/4505104845766656';
+  },
+      appRunner: () => runApp(const MealPlanningApp()
+          // Sentry code to get emailed exceptions
+          ));
+  runApp(const MealPlanningApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MealPlanningApp extends StatelessWidget {
+  const MealPlanningApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', 'GB'),
+      ],
+      title: "Just Eat",
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        brightness: Brightness.light,
+        primarySwatch: Colors.amber,
+        fontFamily: 'Raleway',
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
