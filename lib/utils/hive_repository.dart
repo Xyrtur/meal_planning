@@ -20,10 +20,10 @@ class HiveRepository {
     mealPlanningBox = Hive.box<dynamic>('mealPlanningBox');
 
     recipeList = recipesBox.values.cast<Recipe>().toList();
-    recipeCategoriesMap = mealPlanningBox.get('recipeCategoriesMap');
-    groceryCategoriesMap = mealPlanningBox.get('groceryCategoriesMap');
-    genericCategoriesMap = mealPlanningBox.get('genericCategoriesMap');
-    groceryItemsMap = mealPlanningBox.get('groceryItemsMap');
+    recipeCategoriesMap = mealPlanningBox.get('recipeCategoriesMap') ?? {};
+    groceryCategoriesMap = mealPlanningBox.get('groceryCategoriesMap') ?? {};
+    genericCategoriesMap = mealPlanningBox.get('genericCategoriesMap') ?? {};
+    groceryItemsMap = mealPlanningBox.get('groceryItemsMap') ?? {};
 
     // TODO: Populate recipeTitlestoRecipeMap
 

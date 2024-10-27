@@ -8,6 +8,7 @@ class Centre {
 
   // Example
   static Color bgColor = const Color.fromARGB(255, 221, 212, 211);
+  static Color shadowbgColor = const Color.fromARGB(255, 198, 191, 190);
 
   // Example
   static final todoText = TextStyle(

@@ -3,6 +3,7 @@ import 'package:lottie/lottie.dart';
 import 'package:meal_planning/screens/all_recipes_page.dart';
 import 'package:meal_planning/screens/grocery_list_page.dart';
 import 'package:meal_planning/screens/weekly_planning_page.dart';
+import 'package:meal_planning/widgets/page_navigation_bar.dart';
 import '../utils/centre.dart';
 
 class LandingPageView extends StatefulWidget {
@@ -59,6 +60,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                   //TODO: Provide FilterBloc, RecipeSearchbarBloc
                   const AllRecipesPage()
                 ],
+              ),
+              PageNavigationBar(
+                pageController: controller,
               ),
               !finishedAnimating
                   ? AnimatedOpacity(

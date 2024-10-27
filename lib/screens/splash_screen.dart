@@ -21,20 +21,16 @@ class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
+    Centre().init(context);
     return Material(
         color: Colors.transparent,
         child: AnimatedSplashScreen.withScreenFunction(
             backgroundColor: Centre.bgColor,
             pageTransitionType: PageTransitionType.fade,
-            splashTransition: SplashTransition.sizeTransition,
-            animationDuration: const Duration(milliseconds: 1),
-            duration: 1100,
-            splash: Column(
-              children: [
-                Center(
-                  child: LottieBuilder.asset("assets/splash_animation.json"),
-                )
-              ],
+            duration: 500,
+            splash: LottieBuilder.asset(
+              "assets/splash_animation.json",
+              width: Centre.safeBlockHorizontal * 20,
             ),
             screenFunction: () async {
               // Sentry code to get emailed exceptions
