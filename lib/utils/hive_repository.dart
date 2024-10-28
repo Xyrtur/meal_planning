@@ -103,8 +103,6 @@ class HiveRepository {
     mealPlanningBox.put('currentWeekRanges', currentWeekRanges);
     mealPlanningBox.put('weeklyMealsList', weeklyMealsList);
 
-    // Color(recipeCategoriesMap[recipeTitlestoRecipeMap["dd"].category])
-
     for (int i = 0; i < (weeklyMealsList.length / 5).floor(); i++) {
       weeklyMealsSplit.add(weeklyMealsList.sublist(i * 5, i * 5 + 5));
     }
