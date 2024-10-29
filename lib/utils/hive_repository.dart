@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:meal_planning/models/grocery_item.dart';
 import 'package:meal_planning/models/recipe.dart';
@@ -27,12 +26,6 @@ class HiveRepository {
     mealPlanningBox = Hive.box<dynamic>('mealPlanningBox');
 
     recipeList = recipesBox.values.cast<Recipe>().toList();
-    // recipeCategoriesMap = (mealPlanningBox.get('recipeCategoriesMap') ?? {}).cast<Map<String, int>>();
-    // groceryCategoriesMap = (mealPlanningBox.get('groceryCategoriesMap') ?? {}).cast<Map<String, int>>();
-    // genericCategoriesMap = (mealPlanningBox.get('genericCategoriesMap') ?? {}).cast<Map<String, int>>();
-    // groceryItemsMap = (mealPlanningBox.get('groceryItemsMap') ?? {}).cast<Map<String, List<GroceryItem>>>();
-    // currentWeekRanges = mealPlanningBox.get('currentWeekRanges')?.cast<DateTime>() ?? [];
-    // weeklyMealsList = (mealPlanningBox.get('weeklyMealsList') ?? []).cast<List<String>>();
     recipeCategoriesMap = (mealPlanningBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
     groceryCategoriesMap = (mealPlanningBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
     genericCategoriesMap = (mealPlanningBox.get('genericCategoriesMap') ?? <String, int>{}).cast<String, int>();
