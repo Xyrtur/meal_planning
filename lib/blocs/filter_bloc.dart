@@ -4,7 +4,8 @@
  *  * Filter logic
  * Filter by available recipe categories
  * Have filterToggledList > if empty, show all recipes in current recipe list
- *
+ *  List<Recipe> filteredRecipeList = [];
+
  *  For each recipe in current list {
  *    for category in recipe.categories {
  *      if recipe.category in toggled filters > add to list + break loop

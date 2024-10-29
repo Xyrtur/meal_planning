@@ -19,17 +19,20 @@ class GroceryItemAdapter extends TypeAdapter<GroceryItem> {
     return GroceryItem(
       name: fields[0] as String,
       isChecked: fields[1] as bool,
+      index: (fields[2] as num).toInt(),
     );
   }
 
   @override
   void write(BinaryWriter writer, GroceryItem obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.isChecked);
+      ..write(obj.isChecked)
+      ..writeByte(2)
+      ..write(obj.index);
   }
 
   @override

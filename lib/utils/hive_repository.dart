@@ -27,12 +27,18 @@ class HiveRepository {
     mealPlanningBox = Hive.box<dynamic>('mealPlanningBox');
 
     recipeList = recipesBox.values.cast<Recipe>().toList();
-    recipeCategoriesMap = mealPlanningBox.get('recipeCategoriesMap') ?? {};
-    groceryCategoriesMap = mealPlanningBox.get('groceryCategoriesMap') ?? {};
-    genericCategoriesMap = mealPlanningBox.get('genericCategoriesMap') ?? {};
-    groceryItemsMap = mealPlanningBox.get('groceryItemsMap') ?? {};
-    currentWeekRanges = mealPlanningBox.get('currentWeekRanges') ?? [];
-    weeklyMealsList = mealPlanningBox.get('weeklyMealsList') ?? [];
+    // recipeCategoriesMap = (mealPlanningBox.get('recipeCategoriesMap') ?? {}).cast<Map<String, int>>();
+    // groceryCategoriesMap = (mealPlanningBox.get('groceryCategoriesMap') ?? {}).cast<Map<String, int>>();
+    // genericCategoriesMap = (mealPlanningBox.get('genericCategoriesMap') ?? {}).cast<Map<String, int>>();
+    // groceryItemsMap = (mealPlanningBox.get('groceryItemsMap') ?? {}).cast<Map<String, List<GroceryItem>>>();
+    // currentWeekRanges = mealPlanningBox.get('currentWeekRanges')?.cast<DateTime>() ?? [];
+    // weeklyMealsList = (mealPlanningBox.get('weeklyMealsList') ?? []).cast<List<String>>();
+    recipeCategoriesMap = (mealPlanningBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    groceryCategoriesMap = (mealPlanningBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    genericCategoriesMap = (mealPlanningBox.get('genericCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    groceryItemsMap = (mealPlanningBox.get('groceryItemsMap') ?? {}).cast<String, List<GroceryItem>>();
+    currentWeekRanges = (mealPlanningBox.get('currentWeekRanges') ?? []).cast<DateTime>();
+    weeklyMealsList = (mealPlanningBox.get('weeklyMealsList') ?? []).cast<String>();
 
     recipeTitlestoRecipeMap.clear();
     weeklyMealsSplit.clear();
@@ -51,52 +57,50 @@ class HiveRepository {
     // If there are no week ranges set OR today's date is not within the stored ranges
     if (currentWeekRanges.isEmpty ||
         !(DateTime.now().isBetweenDates(
-            currentWeekRanges[0],
-            currentWeekRanges.length == 6
-                ? currentWeekRanges[5]
-                : currentWeekRanges[3]))) {
+            currentWeekRanges[0], currentWeekRanges.length == 6 ? currentWeekRanges[5] : currentWeekRanges[3]))) {
       currentWeekRanges.clear();
-      DateTime startOfRanges =
-          DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+      weeklyMealsList.clear();
+      DateTime startOfRanges = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
       currentWeekRanges.add(startOfRanges);
       currentWeekRanges.add(startOfRanges.add(Duration(days: 6)));
 
       currentWeekRanges.add(startOfRanges.add(Duration(days: 7)));
       currentWeekRanges.add(startOfRanges.add(Duration(days: 13)));
+
+      weeklyMealsList.addAll(List.filled(5 * 14, ""));
+
       if (DateTime.now().weekday > 5) {
         currentWeekRanges.add(startOfRanges.add(Duration(days: 14)));
         currentWeekRanges.add(startOfRanges.add(Duration(days: 20)));
+
+        weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
     } else {
       // Prune the list
-      if (DateTime.now()
-          .isBetweenDates(currentWeekRanges[2], currentWeekRanges[3])) {
+      if (DateTime.now().isBetweenDates(currentWeekRanges[2], currentWeekRanges[3])) {
         // Lops off first week
         currentWeekRanges.removeRange(0, 2);
         weeklyMealsList.removeRange(0, 35);
       } else if (currentWeekRanges.length == 6 &&
-          DateTime.now()
-              .isBetweenDates(currentWeekRanges[4], currentWeekRanges[5])) {
+          DateTime.now().isBetweenDates(currentWeekRanges[4], currentWeekRanges[5])) {
         // Lops off first and second week
         currentWeekRanges.removeRange(0, 4);
         weeklyMealsList.removeRange(0, 70);
       }
-    }
 
-    // Extend the list
-    if (!(DateTime.now()
-        .isBetweenDates(currentWeekRanges[0], currentWeekRanges[1]))) {
+      // Extend the list
+
       // If only one week is left, add a second
       if (currentWeekRanges.length == 2) {
         currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 7)));
         currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 13)));
-        weeklyMealsList.addAll(List.filled(5, ""));
+        weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
       // Add a third week only if nearing the end of the first week
       if (DateTime.now().weekday > 5) {
         currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 14)));
         currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 20)));
-        weeklyMealsList.addAll(List.filled(5, ""));
+        weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
     }
     // Update in the box
@@ -118,22 +122,20 @@ class HiveRepository {
   }
 
   // Settings page
-  void deleteCategory(
-      {required CategoryType type, required String categoryName}) {
+  void deleteCategory({required CategoryType type, required String categoryName}) {
     switch (type) {
       case CategoryType.grocery:
         groceryCategoriesMap.remove(categoryName);
         mealPlanningBox.put('groceryCategoriesMap', groceryCategoriesMap);
-        groceryItemsMap.update(
-            "Other", (list) => list..addAll(groceryItemsMap[categoryName]!),
+        groceryItemsMap.update("Other", (list) => list..addAll(groceryItemsMap[categoryName]!),
             ifAbsent: () => groceryItemsMap[categoryName]!);
         break;
 
       case CategoryType.recipe:
         recipeCategoriesMap.remove(categoryName);
         mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
-        recipeCategoriesToRecipesMap.update("Other",
-            (list) => list..addAll(recipeCategoriesToRecipesMap[categoryName]!),
+        recipeCategoriesToRecipesMap.update(
+            "Other", (list) => list..addAll(recipeCategoriesToRecipesMap[categoryName]!),
             ifAbsent: () => recipeCategoriesToRecipesMap[categoryName]!);
         break;
 
@@ -152,28 +154,19 @@ class HiveRepository {
   }
 
   void updateCategory() {}
-}
 
-/**
-   * 
-   * filterRecipes(tags){return}
-   * 
-   * addRecipe
-   * deleteRecipe
-   * updateRecipe
-   * 
-   * Planning box hold
-   * List<int> weeklyPlanningMeals []
-   * updateWeeklyPlanningMeals()
-   * Map<String, List<dynamic>> GroceryMap
-   * "category" : [colour, [groceryItem]]
-   * Map<String, int> recipeCategories (Name, color)
-   * 
-   * updateGroceryListCategories(add: delete:)
-   * 
-   * deleteGroceryItems(Map<String, List<GroceryItem>>) { for each category, remove those items from list}
-   * 
-   * addGroceryItems
-   * 
-   * 
-   */
+  // Grocery page functions
+  void updateGroceryItems() {}
+
+  void deleteGroceryItems(Map<String, List<GroceryItem>> itemsToDelete) {
+    // for each category, remove those items from list
+  }
+  void addGroceryItem(GroceryItem item) {}
+
+  // All Recipes page functions
+  void addRecipe() {}
+
+  void deleteRecipe() {}
+
+  void updateRecipe() {}
+}

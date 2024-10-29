@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
+import 'package:meal_planning/blocs/weekly_planning_bloc.dart';
 import 'package:meal_planning/screens/all_recipes_page.dart';
 import 'package:meal_planning/screens/grocery_list_page.dart';
 import 'package:meal_planning/screens/weekly_planning_page.dart';
+import 'package:meal_planning/utils/hive_repository.dart';
 import 'package:meal_planning/widgets/page_navigation_bar.dart';
 import '../utils/centre.dart';
 
@@ -40,7 +43,6 @@ class _LandingPageViewState extends State<LandingPageView> {
   @override
   Widget build(BuildContext context) {
     Centre().init(context);
-
     return ScrollConfiguration(
       behavior: MyBehavior(),
       child: Material(
@@ -51,8 +53,14 @@ class _LandingPageViewState extends State<LandingPageView> {
               PageView(
                 controller: controller,
                 children: [
-                  //TODO: Provide RecipeSearchbarBloc
-                  const WeeklyPlanningPage(),
+                  MultiBlocProvider(
+                      providers: [
+                        BlocProvider<WeeklyPlanningBloc>(
+                          create: (_) => WeeklyPlanningBloc(context.read<HiveRepository>()),
+                        ),
+                      ],
+                      //TODO: Provide RecipeSearchbarBloc
+                      child: WeeklyPlanningPage()),
 
                   //TODO: Provide GroceryListBloc
                   const GroceryListPage(),
@@ -80,9 +88,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Center(
-                                child: LottieBuilder.asset(
-                                    "assets/splash_animation.json")),
+                            Center(child: LottieBuilder.asset("assets/splash_animation.json")),
                             SizedBox(
                               height: Centre.safeBlockVertical * 5.5,
                             )
@@ -101,8 +107,7 @@ class _LandingPageViewState extends State<LandingPageView> {
 
 class MyBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(
-      BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }
