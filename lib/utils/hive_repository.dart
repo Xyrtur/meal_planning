@@ -149,12 +149,58 @@ class HiveRepository {
   void updateCategory() {}
 
   // Grocery page functions
-  void updateGroceryItems() {}
+  void updateGroceryItems({
+    required bool updatingChecked,
+    required Map<String, List<GroceryItem>> items,
+    String? currentCategory,
+    int? index,
+    bool? checked,
+  }) {
+    if (updatingChecked) {
+      // if checked is not set, then whole category(ies) are being checked off/on
+      if (checked != null) {
+        groceryItemsMap[items.keys.first]![index!].isChecked = checked;
+      }
+      for (String category in items.keys) {
+        bool allCheckedOff = true;
+        if (items.length > 1) {
+          for (int i = 0; i < groceryItemsMap[category]!.length; i++) {
+            if (!groceryItemsMap[category]![i].isChecked) {
+              allCheckedOff = false;
+              break;
+            }
+          }
+          checked = !allCheckedOff;
+        }
+        for (int i = 0; i < groceryItemsMap[category]!.length; i++) {
+          groceryItemsMap[category]![i].isChecked = checked!;
+        }
+      }
+    } else {
+      // Updating categories of moved items
+      for (String category in items.keys) {
+        for (GroceryItem item in items[category]!) {
+          groceryItemsMap[category]!.remove(item);
+        }
+        groceryItemsMap[currentCategory]!.addAll(items[category]!);
+      }
+    }
+    mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+  }
 
   void deleteGroceryItems(Map<String, List<GroceryItem>> itemsToDelete) {
-    // for each category, remove those items from list
+    for (String category in itemsToDelete.keys) {
+      for (GroceryItem item in groceryItemsMap[category]!) {
+        groceryItemsMap[category]!.remove(item);
+      }
+    }
+    mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
   }
-  void addGroceryItem(GroceryItem item) {}
+
+  void addGroceryItem(GroceryItem item, String category) {
+    groceryItemsMap[category]!.add(item);
+    mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+  }
 
   // All Recipes page functions
   void addRecipe() {}

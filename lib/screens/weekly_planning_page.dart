@@ -75,7 +75,8 @@ class WeeklyPlanningPage extends StatelessWidget {
         decoration: BoxDecoration(
           color: mealName.isEmpty
               ? const Color.fromARGB(255, 188, 188, 188)
-              : Color(hive.recipeCategoriesMap[hive.recipeTitlestoRecipeMap[mealName]!.category]!),
+              : Color(hive.recipeCategoriesMap[
+                  hive.recipeTitlestoRecipeMap[mealName]!.category]!), //TODO: replace w settings blocs usage
           borderRadius: BorderRadius.all(Radius.circular(25)),
           border: RDottedLineBorder.all(
             width: 1,
