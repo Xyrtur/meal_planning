@@ -42,7 +42,9 @@ final class UpdateIngredientsChecked extends GroceryEvent {
 final class UpdateIngredientsCategory extends GroceryEvent {
   final Map<String, List<GroceryItem>> items;
   final String newCategory;
-  const UpdateIngredientsCategory(this.items, this.newCategory);
+  final bool onlyItemOrderChanged;
+  const UpdateIngredientsCategory(
+      this.items, this.newCategory, this.onlyItemOrderChanged);
 
   @override
   List<Object> get props => [items, newCategory];
@@ -97,12 +99,21 @@ class GroceryBloc extends Bloc<GroceryEvent, GroceryState> {
     });
 
     on<UpdateIngredientsCategory>((event, emit) {
-      hive.updateGroceryItems(updatingChecked: false, items: event.items, currentCategory: event.newCategory);
+      hive.updateGroceryItems(
+          noCategoryUpdated: event.onlyItemOrderChanged,
+          updatingChecked: false,
+          items: event.items,
+          currentCategory: event.newCategory);
       emit(GroceryListUpdated(hive.groceryItemsMap));
     });
 
     on<UpdateIngredientsChecked>((event, emit) {
-      hive.updateGroceryItems(updatingChecked: true, items: event.items, checked: event.checked, index: event.index);
+      hive.updateGroceryItems(
+          noCategoryUpdated: false,
+          updatingChecked: true,
+          items: event.items,
+          checked: event.checked,
+          index: event.index);
       emit(GroceryListUpdated(event.items));
     });
 

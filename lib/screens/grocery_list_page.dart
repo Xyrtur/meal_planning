@@ -39,12 +39,15 @@ class GroceryListPage extends StatelessWidget {
             ));
   }
 
-  Widget clearButton({required void Function() onTap, required ClearButton type}) {
+  Widget clearButton(
+      {required void Function() onTap, required ClearButton type}) {
     return GestureDetector(
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(color: const Color.fromARGB(255, 248, 172, 197), width: Centre.safeBlockHorizontal),
+            border: Border.all(
+                color: const Color.fromARGB(255, 248, 172, 197),
+                width: Centre.safeBlockHorizontal),
             borderRadius: const BorderRadius.all(Radius.circular(40)),
           ),
           child: type == ClearButton.clearAll
@@ -58,8 +61,20 @@ class GroceryListPage extends StatelessWidget {
   @override
   Widget build(BuildContext topContext) {
     Centre().init(topContext);
-    Map<String, List<GroceryItem>> items = (topContext.read<GroceryBloc>().state as GroceryInitial).items;
+    Map<String, List<GroceryItem>> items =
+        (topContext.read<GroceryBloc>().state as GroceryInitial).items;
     List<String> collapsedCategories = items.keys.toList();
+
+    final ScrollController scrollController = ScrollController();
+    moveUp() {
+      scrollController.animateTo(scrollController.offset - 100,
+          curve: Curves.linear, duration: Duration(milliseconds: 500));
+    }
+
+    moveDown() {
+      scrollController.animateTo(scrollController.offset + 100,
+          curve: Curves.linear, duration: Duration(milliseconds: 500));
+    }
 
     return SafeArea(
         child: Scaffold(
@@ -79,7 +94,8 @@ class GroceryListPage extends StatelessWidget {
                           children: [
                             clearButton(
                                 onTap: () {
-                                  Map<String, List<GroceryItem>> itemsToDelete = {};
+                                  Map<String, List<GroceryItem>> itemsToDelete =
+                                      {};
                                   for (String category in items.keys) {
                                     for (GroceryItem item in items[category]!) {
                                       if (itemsToDelete.containsKey(category)) {
@@ -89,12 +105,16 @@ class GroceryListPage extends StatelessWidget {
                                       }
                                     }
                                   }
-                                  topContext.read<GroceryBloc>().add(DeleteIngredients(itemsToDelete));
+                                  topContext
+                                      .read<GroceryBloc>()
+                                      .add(DeleteIngredients(itemsToDelete));
                                 },
                                 type: ClearButton.clearChecked),
                             clearButton(
                                 onTap: () {
-                                  topContext.read<GroceryBloc>().add(DeleteIngredients(items));
+                                  topContext
+                                      .read<GroceryBloc>()
+                                      .add(DeleteIngredients(items));
                                 },
                                 type: ClearButton.clearAll)
                           ],
@@ -103,34 +123,106 @@ class GroceryListPage extends StatelessWidget {
                     )
                   ],
                 ),
-                Expanded(
-                    child: BlocBuilder<ToggleGroceryDeletingCubit, bool>(
-                  builder: (context, toggleState) => BlocConsumer<GroceryBloc, GroceryState>(
-                      listener: ((context, state) {
-                        if (state is GroceryInitial || state is GroceryListUpdated) {
-                          items = state.props[0] as Map<String, List<GroceryItem>>;
-                        } else if (state is GroceryCategoryToggled) {
-                          if (collapsedCategories.contains(state.category)) {
-                            collapsedCategories.remove(state.category);
-                          } else {
-                            collapsedCategories.add(state.category);
-                          }
-                        }
-                      }),
-                      builder: (context, groceryState) => Column(
-                            children: [
-                              for (String category in items.keys)
-                                GroceryCategoryBox(
-                                  isExpanded: !collapsedCategories.contains(category),
-                                  categoryName: category,
-                                  categoryItems: items[category]!,
-                                  inDeleteMode: toggleState,
-                                  categoryColor:
-                                      Color(context.read<SettingsBloc>().state.groceryCategoriesMap[category]!),
-                                )
-                            ],
-                          )),
-                ))
+                Expanded(child: BlocBuilder<GroceryScrollDraggingCubit, bool>(
+                    builder: (context, isDragging) {
+                  return BlocBuilder<GroceryCategoryOrderCubit, List<String>>(
+                      builder: (context, categoryOrderState) {
+                    return BlocBuilder<ToggleGroceryDeletingCubit, bool>(
+                      builder: (context, toggleState) => BlocConsumer<
+                              GroceryBloc, GroceryState>(
+                          listener: ((context, state) {
+                            if (state is GroceryInitial ||
+                                state is GroceryListUpdated) {
+                              items = state.props[0]
+                                  as Map<String, List<GroceryItem>>;
+                            } else if (state is GroceryCategoryToggled) {
+                              if (collapsedCategories
+                                  .contains(state.category)) {
+                                collapsedCategories.remove(state.category);
+                              } else {
+                                collapsedCategories.add(state.category);
+                              }
+                            }
+                          }),
+                          builder: (context, groceryState) => Stack(
+                                children: [
+                                  ReorderableListView(
+                                    scrollController: scrollController,
+                                    physics: ClampingScrollPhysics(),
+                                    children: [
+                                      for (String category
+                                          in categoryOrderState)
+                                        GroceryCategoryBox(
+                                          parentScrollController:
+                                              scrollController,
+                                          isExpanded: !collapsedCategories
+                                              .contains(category),
+                                          categoryName: category,
+                                          categoryItems: items[category]!,
+                                          inDeleteMode: toggleState,
+                                          categoryColor: Color(context
+                                              .read<SettingsBloc>()
+                                              .state
+                                              .groceryCategoriesMap[category]!),
+                                        )
+                                    ],
+                                    onReorder: (int oldIndex, int newIndex) {
+                                      if (oldIndex < newIndex) {
+                                        newIndex -= 1;
+                                      }
+                                      final String category =
+                                          categoryOrderState.removeAt(oldIndex);
+                                      categoryOrderState.insert(
+                                          newIndex, category);
+                                      context
+                                          .read<GroceryCategoryOrderCubit>()
+                                          .update(categoryOrderState);
+                                    },
+                                  ),
+                                  isDragging && scrollController.offset != 0
+                                      ? Align(
+                                          alignment: Alignment.topCenter,
+                                          child: DragTarget<GroceryItem>(
+                                            builder:
+                                                (context, accepted, rejected) =>
+                                                    Container(
+                                              height: 20,
+                                              width: double.infinity,
+                                              color: Colors.transparent,
+                                            ),
+                                            onWillAcceptWithDetails: (data) {
+                                              moveUp();
+                                              return false;
+                                            },
+                                          ),
+                                        )
+                                      : const SizedBox(),
+                                  isDragging &&
+                                          scrollController.offset !=
+                                              scrollController
+                                                  .position.maxScrollExtent
+                                      ? Align(
+                                          alignment: Alignment.bottomCenter,
+                                          child: DragTarget<GroceryItem>(
+                                            builder:
+                                                (context, accepted, rejected) =>
+                                                    Container(
+                                              height: 20,
+                                              width: double.infinity,
+                                              color: Colors.transparent,
+                                            ),
+                                            onWillAcceptWithDetails: (data) {
+                                              moveDown();
+                                              return false;
+                                            },
+                                          ),
+                                        )
+                                      : const SizedBox()
+                                ],
+                              )),
+                    );
+                  });
+                }))
               ],
             )));
   }
