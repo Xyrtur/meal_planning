@@ -7,6 +7,7 @@ class Centre {
   static late double screenHeight;
 
   static Color bgColor = const Color.fromARGB(255, 221, 212, 211);
+  static Color primaryColor = const Color.fromARGB(255, 88, 105, 219);
   static Color shadowbgColor = const Color.fromARGB(255, 198, 191, 190);
 
   static final titleText = TextStyle(
@@ -34,10 +35,8 @@ class Centre {
     screenWidth = mediaQueryData.size.width;
     screenHeight = mediaQueryData.size.height;
 
-    safeAreaHorizontal =
-        mediaQueryData.padding.left + mediaQueryData.padding.right;
-    safeAreaVertical =
-        mediaQueryData.padding.top + mediaQueryData.padding.bottom;
+    safeAreaHorizontal = mediaQueryData.padding.left + mediaQueryData.padding.right;
+    safeAreaVertical = mediaQueryData.padding.top + mediaQueryData.padding.bottom;
     safeBlockHorizontal = (screenWidth - safeAreaHorizontal) / 100;
     safeBlockVertical = (screenHeight - safeAreaVertical) / 100;
   }

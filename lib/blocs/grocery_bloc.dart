@@ -12,9 +12,9 @@ sealed class GroceryEvent extends Equatable {
   List<Object> get props => [];
 }
 
-final class ExpandGroceryCategory extends GroceryEvent {
+final class ToggleGroceryCategory extends GroceryEvent {
   final String category;
-  const ExpandGroceryCategory(this.category);
+  const ToggleGroceryCategory(this.category);
 
   @override
   List<Object> get props => [category];
@@ -79,25 +79,9 @@ final class GroceryListUpdated extends GroceryState {
   List<Object?> get props => [items];
 }
 
-final class GroceryListCategoriesUpdated extends GroceryState {
-  final Map<String, List<GroceryItem>> items;
-  const GroceryListCategoriesUpdated(this.items);
-
-  @override
-  List<Object?> get props => [items];
-}
-
-final class GroceryListCheckboxesUpdated extends GroceryState {
-  final Map<String, List<GroceryItem>> items;
-  const GroceryListCheckboxesUpdated(this.items);
-
-  @override
-  List<Object?> get props => [items];
-}
-
-final class GroceryCategoryExpanded extends GroceryState {
+final class GroceryCategoryToggled extends GroceryState {
   final String category;
-  const GroceryCategoryExpanded(this.category);
+  const GroceryCategoryToggled(this.category);
 
   @override
   List<Object?> get props => [category];
@@ -113,20 +97,13 @@ class GroceryBloc extends Bloc<GroceryEvent, GroceryState> {
     });
 
     on<UpdateIngredientsCategory>((event, emit) {
-      hive.updateGroceryItems(
-          updatingChecked: false,
-          items: event.items,
-          currentCategory: event.newCategory);
-      emit(GroceryListCategoriesUpdated(hive.groceryItemsMap));
+      hive.updateGroceryItems(updatingChecked: false, items: event.items, currentCategory: event.newCategory);
+      emit(GroceryListUpdated(hive.groceryItemsMap));
     });
 
     on<UpdateIngredientsChecked>((event, emit) {
-      hive.updateGroceryItems(
-          updatingChecked: true,
-          items: event.items,
-          checked: event.checked,
-          index: event.index);
-      emit(GroceryListCheckboxesUpdated(event.items));
+      hive.updateGroceryItems(updatingChecked: true, items: event.items, checked: event.checked, index: event.index);
+      emit(GroceryListUpdated(event.items));
     });
 
     on<DeleteIngredients>((event, emit) {
@@ -134,8 +111,8 @@ class GroceryBloc extends Bloc<GroceryEvent, GroceryState> {
       emit(GroceryListUpdated(hive.groceryItemsMap));
     });
 
-    on<ExpandGroceryCategory>((event, emit) {
-      emit(GroceryCategoryExpanded(event.category));
+    on<ToggleGroceryCategory>((event, emit) {
+      emit(GroceryCategoryToggled(event.category));
     });
   }
 }
