@@ -56,13 +56,14 @@ class _LandingPageViewState extends State<LandingPageView> {
                   MultiBlocProvider(
                       providers: [
                         BlocProvider<WeeklyPlanningBloc>(
-                          create: (_) => WeeklyPlanningBloc(context.read<HiveRepository>()),
+                          create: (_) => WeeklyPlanningBloc(
+                              context.read<HiveRepository>()),
                         ),
                       ],
-                      //TODO: Provide RecipeSearchbarBloc
+                      //TODO: Provide RecipeSearchbarBloc, SettingsBloc, weeklyplanningbloc
                       child: WeeklyPlanningPage()),
 
-                  //TODO: Provide GroceryListBloc
+                  //TODO: Provide GroceryListBloc, SettingsBloc, ToggleGroceryDeletingCubit
                   const GroceryListPage(),
 
                   //TODO: Provide FilterBloc, RecipeSearchbarBloc
@@ -88,7 +89,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Center(child: LottieBuilder.asset("assets/splash_animation.json")),
+                            Center(
+                                child: LottieBuilder.asset(
+                                    "assets/splash_animation.json")),
                             SizedBox(
                               height: Centre.safeBlockVertical * 5.5,
                             )
@@ -107,7 +110,8 @@ class _LandingPageViewState extends State<LandingPageView> {
 
 class MyBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }

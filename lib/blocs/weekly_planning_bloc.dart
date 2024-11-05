@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meal_planning/models/recipe.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
 
 sealed class WeeklyPlanningEvent {
@@ -24,7 +25,9 @@ class WeeklyPlanningInitial extends WeeklyPlanningState {
   final int initialSelected;
   final List<List<String>> mealsList;
   final List<DateTime> currentWeekRanges;
-  const WeeklyPlanningInitial(this.initialSelected, this.mealsList, this.currentWeekRanges);
+  final Map<String, Recipe> recipeTitlestoRecipeMap;
+  const WeeklyPlanningInitial(this.initialSelected, this.mealsList,
+      this.currentWeekRanges, this.recipeTitlestoRecipeMap);
 }
 
 class WeeklyPlanningWeekRangeUpdated extends WeeklyPlanningState {
@@ -37,10 +40,13 @@ class WeeklyPlanningMealsUpdated extends WeeklyPlanningState {
   const WeeklyPlanningMealsUpdated(this.mealsList);
 }
 
-class WeeklyPlanningBloc extends Bloc<WeeklyPlanningEvent, WeeklyPlanningState> {
+class WeeklyPlanningBloc
+    extends Bloc<WeeklyPlanningEvent, WeeklyPlanningState> {
   final HiveRepository hive;
 
-  WeeklyPlanningBloc(this.hive) : super(WeeklyPlanningInitial(0, hive.weeklyMealsSplit, hive.currentWeekRanges)) {
+  WeeklyPlanningBloc(this.hive)
+      : super(WeeklyPlanningInitial(0, hive.weeklyMealsSplit,
+            hive.currentWeekRanges, hive.recipeTitlestoRecipeMap)) {
     on<WeeklyPlanningWeekRangePressed>((event, emit) {
       emit(WeeklyPlanningWeekRangeUpdated(event.selected));
     });

@@ -21,80 +21,158 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/blocs/cubits.dart';
 import 'package:meal_planning/blocs/grocery_bloc.dart';
+import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/models/grocery_item.dart';
 import 'package:meal_planning/utils/centre.dart';
+
+enum ClearButton { clearAll, clearChecked }
 
 class GroceryListPage extends StatelessWidget {
   const GroceryListPage({super.key});
 
   Widget deleteToggle(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        context.read<ToggleGroceryDeletingCubit>().toggle();
-      },
-      child: Container(),
-    ); // TODO:
+    return BlocBuilder<ToggleGroceryDeletingCubit, bool>(
+        builder: (context, toggleState) => ToggleButtons(
+              onPressed: (int index) {
+                context.read<ToggleGroceryDeletingCubit>().toggle();
+              },
+              isSelected: [!toggleState, toggleState], // list, in delete mode
+              selectedColor: const Color.fromARGB(255, 248, 172, 197),
+              color: Centre.bgColor,
+              fillColor: Centre.bgColor,
+              borderRadius: const BorderRadius.all(Radius.circular(40)),
+              borderWidth: Centre.safeBlockHorizontal,
+              borderColor: Colors.blue,
+              selectedBorderColor: Colors.blue,
+              children: <Widget>[
+                Icon(
+                  Icons.checklist_rounded,
+                  size: Centre.safeBlockVertical * 3,
+                ),
+                Icon(
+                  Icons.delete,
+                  size: Centre.safeBlockVertical * 3,
+                ),
+              ],
+            ));
   }
 
-  Widget clearButton({required void Function() onTap}) {
+  Widget clearButton(
+      {required void Function() onTap, required ClearButton type}) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(),
-    ); //TODO:
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+                color: const Color.fromARGB(255, 248, 172, 197),
+                width: Centre.safeBlockHorizontal),
+            borderRadius: const BorderRadius.all(Radius.circular(40)),
+          ),
+          child: type == ClearButton.clearAll
+              ? Text("clear all")
+              : Row(
+                  children: [Text("clear"), Icon(Icons.check_box_outlined)],
+                ),
+        )); //TODO:
   }
 
-  Widget circularButton({required void Function() onTap}) {
-    return GestureDetector(onTap: onTap, child: Container());
+  Widget circularButton(
+      {required void Function() onTap,
+      required Color categoryColor,
+      required IconData icon}) {
+    return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+              border: Border.all(
+                  color: categoryColor, width: Centre.safeBlockHorizontal),
+              borderRadius: const BorderRadius.all(Radius.circular(20))),
+          child: Icon(icon),
+        ));
   }
 
   Widget categoryBox(
       {required String categoryName,
       required List<GroceryItem> categoryItems,
-      required bool inDeleteMode}) {
+      required bool inDeleteMode,
+      required BuildContext context}) {
+    Color categoryColor = Color(
+        context.read<SettingsBloc>().state.groceryCategoriesMap[categoryName]!);
     return Container(
+      decoration: BoxDecoration(
+        border:
+            Border.all(color: categoryColor, width: Centre.safeBlockHorizontal),
+        borderRadius: const BorderRadius.all(Radius.circular(40)),
+      ),
       child: Column(
         children: [
           Row(
             children: [
-              Text(categoryName),
+              Text(
+                categoryName,
+                style: Centre.semiTitleText,
+              ),
               Spacer(),
-              circularButton(onTap: () {}),
-              circularButton(onTap: () {})
+              circularButton(
+                  onTap: () {}, categoryColor: categoryColor, icon: Icons.add),
+              circularButton(
+                  onTap: () {},
+                  categoryColor: categoryColor,
+                  icon: Icons.expand)
             ],
           ),
-          for (GroceryItem item in categoryItems)
-            itemEntry(item: item, inDeleteMode: inDeleteMode)
+          for (int i = 0; i < categoryItems.length; i++)
+            itemEntry(
+                item: categoryItems[i],
+                index: i,
+                inDeleteMode: inDeleteMode,
+                context: context,
+                category: categoryName)
         ],
       ),
     );
   }
 
-  Widget itemEntry({required GroceryItem item, required bool inDeleteMode}) {
+  Widget itemEntry(
+      {required GroceryItem item,
+      required int index,
+      required bool inDeleteMode,
+      required BuildContext context,
+      required String category}) {
     return Row(
       children: [
         GestureDetector(
-          onTap: () {},
-          child: inDeleteMode
-              ? Icon(Icons.delete)
-              : Container(
-                  width: Centre.safeBlockHorizontal * 5,
-                  height: Centre.safeBlockHorizontal * 5,
-                  decoration: ShapeDecoration(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                  ),
-                  child: item.isChecked ? Icon(Icons.check) : null,
-                ),
-        ),
+            onTap: () {
+              if (inDeleteMode) {
+                context.read<GroceryBloc>().add(DeleteIngredients({
+                      category: [item]
+                    }));
+              } else {
+                context
+                    .read<GroceryBloc>()
+                    .add(UpdateIngredientsChecked(!item.isChecked, index, {
+                      category: [item]
+                    }));
+              }
+            },
+            child: inDeleteMode
+                ? Icon(Icons.delete)
+                : item.isChecked
+                    ? Icon(Icons.check_box_rounded)
+                    : Icon(Icons.check_box_outline_blank)),
         GestureDetector(
           onTap: () {
             if (!inDeleteMode) {
-              // TODO: set to checked
+              context
+                  .read<GroceryBloc>()
+                  .add(UpdateIngredientsChecked(!item.isChecked, index, {
+                    category: [item]
+                  }));
             }
           },
           child: Text(
             item.name,
-            style: TextStyle(
+            style: Centre.listText.copyWith(
                 decoration: item.isChecked ? TextDecoration.lineThrough : null),
           ),
         )
@@ -103,10 +181,10 @@ class GroceryListPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    Centre().init(context);
+  Widget build(BuildContext topContext) {
+    Centre().init(topContext);
     Map<String, List<GroceryItem>> items =
-        (context.read<GroceryBloc>().state as GroceryInitial).items;
+        (topContext.read<GroceryBloc>().state as GroceryInitial).items;
 
     return SafeArea(
         child: Scaffold(
@@ -115,19 +193,40 @@ class GroceryListPage extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text("Grocery List"),
+                    Text(
+                      "Grocery List",
+                      style: Centre.titleText,
+                    ),
                     Column(
                       children: [
-                        deleteToggle(context),
+                        deleteToggle(topContext),
                         Row(
                           children: [
-                            clearButton(onTap: () {
-                              Map<String, List<GroceryItem>> itemsToDelete = {};
-                              context
-                                  .read<GroceryBloc>()
-                                  .add(DeleteIngredients(itemsToDelete));
-                            }),
-                            clearButton(onTap: () {/*TODO: send event */})
+                            clearButton(
+                                onTap: () {
+                                  Map<String, List<GroceryItem>> itemsToDelete =
+                                      {};
+                                  for (String category in items.keys) {
+                                    for (GroceryItem item in items[category]!) {
+                                      if (itemsToDelete.containsKey(category)) {
+                                        itemsToDelete[category]!.add(item);
+                                      } else {
+                                        itemsToDelete[category] = [item];
+                                      }
+                                    }
+                                  }
+                                  topContext
+                                      .read<GroceryBloc>()
+                                      .add(DeleteIngredients(itemsToDelete));
+                                },
+                                type: ClearButton.clearChecked),
+                            clearButton(
+                                onTap: () {
+                                  topContext
+                                      .read<GroceryBloc>()
+                                      .add(DeleteIngredients(items));
+                                },
+                                type: ClearButton.clearAll)
                           ],
                         ),
                       ],
@@ -151,7 +250,8 @@ class GroceryListPage extends StatelessWidget {
                                     categoryBox(
                                         categoryName: category,
                                         categoryItems: items[category]!,
-                                        inDeleteMode: toggleState)
+                                        inDeleteMode: toggleState,
+                                        context: topContext)
                                 ],
                               )),
                 ))
