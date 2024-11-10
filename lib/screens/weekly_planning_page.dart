@@ -46,9 +46,11 @@ class WeeklyPlanningPage extends StatelessWidget {
                     GestureDetector(
                       onTap: () {
                         //TODO: send event
+                        print(currentWeekRanges);
                       },
                       child: SizedBox(
-                          width: Centre.safeBlockHorizontal * 35,
+                          width: Centre.safeBlockHorizontal *
+                              (currentWeekRanges.length / 2 == 3 ? 20 : 35),
                           child: Container(
                             margin: EdgeInsets.symmetric(
                                 horizontal: Centre.safeBlockHorizontal * 3),
@@ -61,7 +63,10 @@ class WeeklyPlanningPage extends StatelessWidget {
                               child: Text(
                                 "${currentWeekRanges[i * 2].day} - ${currentWeekRanges[i * 2 + 1].day}",
                                 style: TextStyle(
-                                    fontSize: Centre.safeBlockVertical * 2),
+                                    fontSize: Centre.safeBlockVertical *
+                                        (currentWeekRanges.length / 2 == 3
+                                            ? 1.7
+                                            : 2)),
                               ),
                             ),
                           )),
@@ -86,9 +91,10 @@ class WeeklyPlanningPage extends StatelessWidget {
           color: mealName.isEmpty
               ? const Color.fromARGB(255, 188, 188, 188)
               : Color(context
-                  .read<SettingsBloc>()
-                  .state
-                  .recipeCategoriesMap[category]!),
+                      .read<SettingsBloc>()
+                      .state
+                      .recipeCategoriesMap[category] ??
+                  Colors.blueGrey.value),
           borderRadius: BorderRadius.all(Radius.circular(25)),
           border: RDottedLineBorder.all(
             width: 1,
@@ -121,7 +127,8 @@ class WeeklyPlanningPage extends StatelessWidget {
           for (int i = 0; i < 5; i++)
             mealTile(
                 mealName: mealsInDay[i],
-                category: recipeTitlestoRecipeMap[mealsInDay[i]]!.category,
+                category:
+                    recipeTitlestoRecipeMap[mealsInDay[i]]?.category ?? "",
                 context: context)
         ],
       ),

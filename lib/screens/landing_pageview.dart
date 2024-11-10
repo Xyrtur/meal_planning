@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
+import 'package:meal_planning/blocs/cubits.dart';
+import 'package:meal_planning/blocs/grocery_bloc.dart';
+import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/blocs/weekly_planning_bloc.dart';
 import 'package:meal_planning/screens/all_recipes_page.dart';
 import 'package:meal_planning/screens/grocery_list_page.dart';
@@ -58,16 +61,44 @@ class _LandingPageViewState extends State<LandingPageView> {
                         BlocProvider<WeeklyPlanningBloc>(
                           create: (_) => WeeklyPlanningBloc(
                               context.read<HiveRepository>()),
+                        )
+                      ],
+                      //TODO: Provide RecipeSearchbarBloc
+                      child: WeeklyPlanningPage()),
+
+                  MultiBlocProvider(
+                      providers: [
+                        BlocProvider<GroceryBloc>(
+                          create: (_) =>
+                              GroceryBloc(context.read<HiveRepository>()),
+                        ),
+                        BlocProvider<ToggleGroceryDeletingCubit>(
+                          create: (_) => ToggleGroceryDeletingCubit(),
+                        ),
+                        BlocProvider<GroceryCategoryOrderCubit>(
+                          create: (_) => GroceryCategoryOrderCubit(
+                              context.read<HiveRepository>()),
+                        ),
+                        BlocProvider<GroceryDraggingItemCubit>(
+                          create: (_) => GroceryDraggingItemCubit(),
+                        ),
+                        BlocProvider<GroceryScrollDraggingCubit>(
+                          create: (_) => GroceryScrollDraggingCubit(),
+                        ),
+                      ],
+                      //TODO: Provide RecipeSearchbarBloc
+                      child: GroceryListPage()),
+
+                  //TODO: Provide FilterBloc, RecipeSearchbarBloc
+                  MultiBlocProvider(
+                      providers: [
+                        BlocProvider<WeeklyPlanningBloc>(
+                          create: (_) => WeeklyPlanningBloc(
+                              context.read<HiveRepository>()),
                         ),
                       ],
                       //TODO: Provide RecipeSearchbarBloc, SettingsBloc, weeklyplanningbloc
-                      child: WeeklyPlanningPage()),
-
-                  //TODO: Provide GroceryListBloc, SettingsBloc, ToggleGroceryDeletingCubit
-                  const GroceryListPage(),
-
-                  //TODO: Provide FilterBloc, RecipeSearchbarBloc
-                  const AllRecipesPage()
+                      child: AllRecipesPage())
                 ],
               ),
               PageNavigationBar(

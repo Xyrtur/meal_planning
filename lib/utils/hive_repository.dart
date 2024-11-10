@@ -47,6 +47,7 @@ class HiveRepository {
 
     recipeTitlestoRecipeMap.clear();
     weeklyMealsSplit.clear();
+    currentWeekRanges.clear();
     recipeCategoriesToRecipesMap.clear();
     for (String category in recipeCategoriesMap.keys) {
       recipeCategoriesToRecipesMap[category] = [];
@@ -108,7 +109,7 @@ class HiveRepository {
         weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
       // Add a third week only if nearing the end of the first week
-      if (DateTime.now().weekday > 5) {
+      if (DateTime.now().weekday >= 5 && currentWeekRanges.length == 4) {
         currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 14)));
         currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 20)));
         weeklyMealsList.addAll(List.filled(5 * 7, ""));

@@ -19,8 +19,8 @@ class GroceryListPage extends StatelessWidget {
                 context.read<ToggleGroceryDeletingCubit>().toggle();
               },
               isSelected: [!toggleState, toggleState], // list, in delete mode
-              selectedColor: const Color.fromARGB(255, 248, 172, 197),
-              color: Centre.bgColor,
+              selectedColor: const Color.fromARGB(255, 237, 107, 151),
+              color: Centre.primaryColor,
               fillColor: Centre.bgColor,
               borderRadius: const BorderRadius.all(Radius.circular(40)),
               borderWidth: Centre.safeBlockHorizontal,
