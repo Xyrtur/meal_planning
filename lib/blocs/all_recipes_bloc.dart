@@ -1,21 +1,3 @@
-/*
- * Filter button logic for All Recipes page
- * 
- *  * Filter logic
- * Filter by available recipe categories
- * Have filterToggledList > if empty, show all recipes in current recipe list
- *  List<Recipe> filteredRecipeList = [];
-
- *  For each recipe in current list {
- *    for category in recipe.categories {
- *      if recipe.category in toggled filters > add to list + break loop
- * 
- * }
- * }
- * 
- * returns list of Recipes to display
- */
-
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
@@ -60,7 +42,8 @@ class FiltersChanged extends AllRecipesState {
 }
 
 class AllRecipesListUpdated extends AllRecipesState {
-  const AllRecipesListUpdated(super.filteredRecipeList, super.toggledCategories);
+  const AllRecipesListUpdated(
+      super.filteredRecipeList, super.toggledCategories);
 }
 
 class AllRecipesBloc extends Bloc<AllRecipesEvent, AllRecipesState> {
@@ -68,20 +51,45 @@ class AllRecipesBloc extends Bloc<AllRecipesEvent, AllRecipesState> {
   List<String> filteredRecipeList = [];
   List<String> toggledCategories = [];
 
-  AllRecipesBloc(this.hive) : super(AllRecipesInitial(hive.recipeTitlestoRecipeMap.keys.toList(), [])) {
+  AllRecipesBloc(this.hive)
+      : super(AllRecipesInitial(
+            hive.recipeTitlestoRecipeMap.keys.toList()..sort(), [])) {
+    List<String> sortedAllRecipesList =
+        hive.recipeTitlestoRecipeMap.keys.toList()..sort();
     on<FilterToggle>((event, emit) {
       if (!toggledCategories.remove(event.category)) {
         toggledCategories.add(event.category);
-        filteredRecipeList.add(hive.recipeCategoriesToRecipesMap)
-      }else{
-
+        filteredRecipeList
+            .addAll(hive.recipeCategoriesToRecipeTitlesMap[event.category]!);
+      } else {
+        for (int i = 0;
+            i < hive.recipeCategoriesToRecipeTitlesMap[event.category]!.length;
+            i++) {
+          filteredRecipeList.removeAt(i);
+        }
       }
-      filteredRecipeList.
-      emit(FiltersChanged());
+
+      emit(FiltersChanged(
+          filteredRecipeList.isEmpty ? sortedAllRecipesList : filteredRecipeList
+            ..sort(),
+          toggledCategories));
     });
 
     on<SearchClicked>((event, emit) {
-      emit(AllRecipesListUpdated(event.selected));
+      String reg = (event.searchString
+          .split(" ")
+          .map((word) => '(?=.*${RegExp.escape(word)})')
+          .join());
+      RegExp reg1 = RegExp("^$reg", caseSensitive: false);
+      List<String> prunedList =
+          filteredRecipeList.isEmpty ? sortedAllRecipesList : filteredRecipeList
+            ..sort();
+      for (int i = 0; i < prunedList.length; i++) {
+        if (!reg1.hasMatch(prunedList[i])) {
+          prunedList.removeAt(i);
+        }
+      }
+      emit(AllRecipesListUpdated(prunedList, toggledCategories));
     });
   }
 }
