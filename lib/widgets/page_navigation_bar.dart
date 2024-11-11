@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meal_planning/blocs/cubits.dart';
+import 'package:meal_planning/blocs/settings_bloc.dart';
+import 'package:meal_planning/screens/settings_page.dart';
 import 'package:meal_planning/utils/centre.dart';
+import 'package:meal_planning/utils/hive_repository.dart';
 
 class PageNavigationBar extends StatelessWidget {
   final PageController pageController;
@@ -8,8 +13,7 @@ class PageNavigationBar extends StatelessWidget {
   Widget pageNavButton({required int index, required IconData icon}) {
     return GestureDetector(
         onTap: () {
-          pageController.animateToPage(index,
-              duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+          pageController.animateToPage(index, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
         },
         child: Icon(
           icon,
@@ -42,8 +46,7 @@ class PageNavigationBar extends StatelessWidget {
                       ),
                     ],
                     color: Centre.bgColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                   ),
                   width: Centre.safeBlockHorizontal * 60,
                   padding: EdgeInsets.all(Centre.safeBlockHorizontal * 3),
@@ -59,7 +62,11 @@ class PageNavigationBar extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    //TODO: open settings page
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (unUsedContext) => MultiBlocProvider(providers: [
+                              BlocProvider(create: (_) => SettingsBloc(context.read<HiveRepository>())),
+                              BlocProvider(create: (_) => SettingsEditingTextCubit())
+                            ], child: SettingsPage())));
                   },
                   child: Container(
                     decoration: ShapeDecoration(
@@ -72,13 +79,11 @@ class PageNavigationBar extends StatelessWidget {
                         ),
                       ],
                       color: Centre.bgColor,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                     ),
                     width: Centre.safeBlockHorizontal * 10,
                     padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                    margin:
-                        EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
+                    margin: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
                     child: Icon(
                       Icons.settings,
                       size: Centre.safeBlockHorizontal * 7,

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:meal_planning/models/grocery_item.dart';
 import 'package:meal_planning/models/recipe.dart';
@@ -8,17 +9,36 @@ enum CategoryType { grocery, recipe, generic }
 class HiveRepository {
   late Box recipesBox;
   late Box mealPlanningBox;
-  Map<String, Recipe> recipeTitlestoRecipeMap = {};
-  Map<String, List<Recipe>> recipeCategoriesToRecipesMap = {};
-  Map<String, int> recipeCategoriesMap = {};
-  Map<String, int> groceryCategoriesMap = {};
-  Map<String, int> genericCategoriesMap = {};
-  Map<String, List<GroceryItem>> groceryItemsMap = {};
-  List<String> weeklyMealsList = [];
-  List<List<String>> weeklyMealsSplit = [];
+
+  // RECIPES
+  // Stores all the lists from the recipe box
   List<Recipe> recipeList = [];
-  List<DateTime> currentWeekRanges = [];
+  // Quick way to get recipes from their name
+  Map<String, Recipe> recipeTitlestoRecipeMap = {};
+  // Allows for quicker filtering
+  Map<String, List<Recipe>> recipeCategoriesToRecipesMap = {};
+
+  // SETTINGS
+  // Stores colors of recipe categories
+  Map<String, int> recipeCategoriesMap = {};
+  // Stores colors of grocery categories
+  Map<String, int> groceryCategoriesMap = {};
+  // Stores colors of generic categories
+  Map<String, int> genericCategoriesMap = {};
+
+  // GROCERY LIST
+  // Stores grocery list items in their categories
+  Map<String, List<GroceryItem>> groceryItemsMap = {};
+  // Stores the order of categories for the grocery list
   List<String> groceryCategoryOrder = [];
+
+  // WEEKLY PLANNING
+  // Stores all the meals planned for coming weeks
+  List<String> weeklyMealsList = [];
+  // Breaks up the meals into sublists
+  List<List<String>> weeklyMealsSplit = [];
+  // Stores the weeks that can be planned for
+  List<DateTime> currentWeekRanges = [];
 
   HiveRepository();
 
@@ -27,23 +47,13 @@ class HiveRepository {
     mealPlanningBox = Hive.box<dynamic>('mealPlanningBox');
 
     recipeList = recipesBox.values.cast<Recipe>().toList();
-    recipeCategoriesMap =
-        (mealPlanningBox.get('recipeCategoriesMap') ?? <String, int>{})
-            .cast<String, int>();
-    groceryCategoriesMap =
-        (mealPlanningBox.get('groceryCategoriesMap') ?? <String, int>{})
-            .cast<String, int>();
-    genericCategoriesMap =
-        (mealPlanningBox.get('genericCategoriesMap') ?? <String, int>{})
-            .cast<String, int>();
-    groceryItemsMap = (mealPlanningBox.get('groceryItemsMap') ?? {})
-        .cast<String, List<GroceryItem>>();
-    currentWeekRanges =
-        (mealPlanningBox.get('currentWeekRanges') ?? []).cast<DateTime>();
-    weeklyMealsList =
-        (mealPlanningBox.get('weeklyMealsList') ?? []).cast<String>();
-    groceryCategoryOrder =
-        (mealPlanningBox.get('groceryCategoryOrder') ?? []).cast<String>();
+    recipeCategoriesMap = (mealPlanningBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    groceryCategoriesMap = (mealPlanningBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    genericCategoriesMap = (mealPlanningBox.get('genericCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    groceryItemsMap = (mealPlanningBox.get('groceryItemsMap') ?? {}).cast<String, List<GroceryItem>>();
+    currentWeekRanges = (mealPlanningBox.get('currentWeekRanges') ?? []).cast<DateTime>();
+    weeklyMealsList = (mealPlanningBox.get('weeklyMealsList') ?? []).cast<String>();
+    groceryCategoryOrder = (mealPlanningBox.get('groceryCategoryOrder') ?? []).cast<String>();
 
     recipeTitlestoRecipeMap.clear();
     weeklyMealsSplit.clear();
@@ -63,14 +73,10 @@ class HiveRepository {
     // If there are no week ranges set OR today's date is not within the stored ranges
     if (currentWeekRanges.isEmpty ||
         !(DateTime.now().isBetweenDates(
-            currentWeekRanges[0],
-            currentWeekRanges.length == 6
-                ? currentWeekRanges[5]
-                : currentWeekRanges[3]))) {
+            currentWeekRanges[0], currentWeekRanges.length == 6 ? currentWeekRanges[5] : currentWeekRanges[3]))) {
       currentWeekRanges.clear();
       weeklyMealsList.clear();
-      DateTime startOfRanges =
-          DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+      DateTime startOfRanges = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
       currentWeekRanges.add(startOfRanges);
       currentWeekRanges.add(startOfRanges.add(Duration(days: 6)));
 
@@ -87,14 +93,12 @@ class HiveRepository {
       }
     } else {
       // Prune the list
-      if (DateTime.now()
-          .isBetweenDates(currentWeekRanges[2], currentWeekRanges[3])) {
+      if (DateTime.now().isBetweenDates(currentWeekRanges[2], currentWeekRanges[3])) {
         // Lops off first week
         currentWeekRanges.removeRange(0, 2);
         weeklyMealsList.removeRange(0, 35);
       } else if (currentWeekRanges.length == 6 &&
-          DateTime.now()
-              .isBetweenDates(currentWeekRanges[4], currentWeekRanges[5])) {
+          DateTime.now().isBetweenDates(currentWeekRanges[4], currentWeekRanges[5])) {
         // Lops off first and second week
         currentWeekRanges.removeRange(0, 4);
         weeklyMealsList.removeRange(0, 70);
@@ -134,46 +138,56 @@ class HiveRepository {
   }
 
   // Settings page
-  void deleteCategory(
-      {required CategoryType type, required String categoryName}) {
+  void deleteCategory({required CategoryType type, required String categoryName}) {
     switch (type) {
       case CategoryType.grocery:
         groceryCategoriesMap.remove(categoryName);
-        mealPlanningBox.put('groceryCategoriesMap', groceryCategoriesMap);
         groceryCategoryOrder.remove(categoryName);
-        mealPlanningBox.put('groceryCategoryOrder', groceryCategoryOrder);
+        if (groceryItemsMap[categoryName]!.isNotEmpty) {
+          groceryItemsMap.update("Other", (list) => list..addAll(groceryItemsMap[categoryName]!), ifAbsent: () {
+            groceryCategoriesMap["Other"] = Colors.blueGrey.value;
+            groceryCategoryOrder.add("Other");
+            return groceryItemsMap[categoryName]!;
+          });
+        }
+        groceryItemsMap.remove(categoryName);
 
-        groceryItemsMap.update(
-            "Other", (list) => list..addAll(groceryItemsMap[categoryName]!),
-            ifAbsent: () => groceryItemsMap[categoryName]!);
+        mealPlanningBox.put('groceryCategoryOrder', groceryCategoryOrder);
+        mealPlanningBox.put('groceryCategoriesMap', groceryCategoriesMap);
+        mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+
         break;
 
       case CategoryType.recipe:
         recipeCategoriesMap.remove(categoryName);
+        if (recipeCategoriesToRecipesMap[categoryName]!.isNotEmpty) {
+          recipeCategoriesToRecipesMap
+              .update("Other", (list) => list..addAll(recipeCategoriesToRecipesMap[categoryName]!), ifAbsent: () {
+            recipeCategoriesMap["Other"] = Colors.blueGrey.value;
+            return recipeCategoriesToRecipesMap[categoryName]!;
+          });
+        }
+        recipeCategoriesToRecipesMap.remove(categoryName);
+
         mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
-        recipeCategoriesToRecipesMap.update("Other",
-            (list) => list..addAll(recipeCategoriesToRecipesMap[categoryName]!),
-            ifAbsent: () => recipeCategoriesToRecipesMap[categoryName]!);
+
         break;
 
       case CategoryType.generic:
         genericCategoriesMap.remove(categoryName);
-        mealPlanningBox.put('genericCategoriesMap', genericCategoriesMap);
         for (int i = 0; i < weeklyMealsList.length; i++) {
           if (weeklyMealsList[i] == categoryName) {
             weeklyMealsList[i] = "";
             weeklyMealsSplit[(i / 5).floor()][i % 5] = "";
           }
         }
+        mealPlanningBox.put('genericCategoriesMap', genericCategoriesMap);
         mealPlanningBox.put('weeklyMealsList', weeklyMealsList);
         break;
     }
   }
 
-  void addCategory(
-      {required CategoryType type,
-      required String categoryName,
-      required int color}) {
+  void addCategory({required CategoryType type, required String categoryName, required int color}) {
     switch (type) {
       case CategoryType.grocery:
         groceryCategoriesMap[categoryName] = color;
@@ -198,8 +212,52 @@ class HiveRepository {
     }
   }
 
-  void updateCategory({required String oldName, String? newName, int? color}) {
-    //TODO:
+  void updateCategory({required CategoryType type, required String oldName, String? newName, int? color}) {
+    switch (type) {
+      case CategoryType.grocery:
+        if (color != null) {
+          groceryCategoriesMap[oldName] = color;
+        } else {
+          int val = groceryCategoriesMap.remove(oldName)!;
+          groceryCategoriesMap[newName!] = val;
+          groceryCategoryOrder[groceryCategoryOrder.indexOf(oldName)] = newName;
+          List<GroceryItem> items = groceryItemsMap.remove(oldName)!;
+          groceryItemsMap[newName] = items;
+        }
+        mealPlanningBox.put('groceryCategoriesMap', groceryCategoriesMap);
+        mealPlanningBox.put('groceryCategoryOrder', groceryCategoryOrder);
+        mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+        break;
+
+      case CategoryType.recipe:
+        if (color != null) {
+          recipeCategoriesMap[oldName] = color;
+        } else {
+          int val = recipeCategoriesMap.remove(oldName)!;
+          recipeCategoriesMap[newName!] = val;
+          List<Recipe> items = recipeCategoriesToRecipesMap.remove(oldName)!;
+          recipeCategoriesToRecipesMap[newName] = items;
+        }
+        mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
+        break;
+
+      case CategoryType.generic:
+        if (color != null) {
+          genericCategoriesMap[oldName] = color;
+        } else {
+          int val = genericCategoriesMap.remove(oldName)!;
+          genericCategoriesMap[newName!] = val;
+          for (int i = 0; i < weeklyMealsList.length; i++) {
+            if (weeklyMealsList[i] == oldName) {
+              weeklyMealsList[i] = newName;
+              weeklyMealsSplit[(i / 5).floor()][i % 5] = newName;
+            }
+          }
+        }
+        mealPlanningBox.put('genericCategoriesMap', genericCategoriesMap);
+        mealPlanningBox.put('weeklyMealsList', weeklyMealsList);
+        break;
+    }
   }
 
   // Grocery page functions

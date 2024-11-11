@@ -28,10 +28,7 @@ class GroceryDraggingItemCubit extends Cubit<List<dynamic>> {
   GroceryDraggingItemCubit() : super([null, null]);
   // int? draggingIndex, int? hoverIndex
 
-  void update(
-      {required int? draggingIndex,
-      required int? hoveringIndex,
-      required String? originCategory}) {
+  void update({required int? draggingIndex, required int? hoveringIndex, required String? originCategory}) {
     emit([draggingIndex, hoveringIndex, originCategory]);
   }
 }
@@ -41,5 +38,21 @@ class GroceryScrollDraggingCubit extends Cubit<bool> {
 
   void update({required bool isDragging}) {
     emit(isDragging);
+  }
+}
+
+class SettingsEditingTextCubit extends Cubit<List<String>> {
+  SettingsEditingTextCubit() : super(["", ""]);
+
+  void editing({required String type, required String name}) {
+    emit([type, name]);
+  }
+}
+
+class SettingsAddColorCubit extends Cubit<int?> {
+  SettingsAddColorCubit() : super(null);
+
+  void selectColor({required int color}) {
+    emit(color);
   }
 }
