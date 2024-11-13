@@ -5,6 +5,7 @@ import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/screens/settings_page.dart';
 import 'package:meal_planning/utils/centre.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
+import 'package:sizer/sizer.dart';
 
 class PageNavigationBar extends StatelessWidget {
   final PageController pageController;
@@ -13,19 +14,19 @@ class PageNavigationBar extends StatelessWidget {
   Widget pageNavButton({required int index, required IconData icon}) {
     return GestureDetector(
         onTap: () {
-          pageController.animateToPage(index, duration: Duration(milliseconds: 300), curve: Curves.easeInOut);
+          pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
         },
         child: Icon(
           icon,
-          size: Centre.safeBlockHorizontal * 8,
+          size: 8.w,
         ));
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-        height: Centre.screenHeight,
-        width: Centre.screenWidth,
+        height: 100.h,
+        width: 100.w,
         child: Column(
           children: [
             const Spacer(),
@@ -33,7 +34,7 @@ class PageNavigationBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
-                  width: Centre.safeBlockHorizontal * 12,
+                  width: 12.w,
                 ),
                 Container(
                   decoration: ShapeDecoration(
@@ -42,14 +43,14 @@ class PageNavigationBar extends StatelessWidget {
                         color: Centre.shadowbgColor,
                         spreadRadius: 2,
                         blurRadius: 7,
-                        offset: Offset(0, 3),
+                        offset: const Offset(0, 3),
                       ),
                     ],
                     color: Centre.bgColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                   ),
-                  width: Centre.safeBlockHorizontal * 60,
-                  padding: EdgeInsets.all(Centre.safeBlockHorizontal * 3),
+                  width: 60.w,
+                  padding: EdgeInsets.all(3.w),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -75,25 +76,26 @@ class PageNavigationBar extends StatelessWidget {
                           color: Centre.shadowbgColor,
                           spreadRadius: 2,
                           blurRadius: 7,
-                          offset: Offset(0, 3),
+                          offset: const Offset(0, 3),
                         ),
                       ],
                       color: Centre.bgColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                     ),
-                    width: Centre.safeBlockHorizontal * 10,
-                    padding: EdgeInsets.all(Centre.safeBlockHorizontal),
-                    margin: EdgeInsets.only(left: Centre.safeBlockHorizontal * 2),
+                    width: 10.w,
+                    padding: EdgeInsets.all(0.5.w),
+                    margin: EdgeInsets.only(left: 4.w),
                     child: Icon(
                       Icons.settings,
-                      size: Centre.safeBlockHorizontal * 7,
+                      color: Colors.black,
+                      size: 7.w,
                     ),
                   ),
                 )
               ],
             ),
             SizedBox(
-              height: Centre.safeBlockVertical * 3,
+              height: 3.h,
             )
           ],
         ));

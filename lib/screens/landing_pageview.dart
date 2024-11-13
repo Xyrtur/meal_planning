@@ -11,6 +11,7 @@ import 'package:meal_planning/screens/grocery_list_page.dart';
 import 'package:meal_planning/screens/weekly_planning_page.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
 import 'package:meal_planning/widgets/page_navigation_bar.dart';
+import 'package:sizer/sizer.dart';
 import '../utils/centre.dart';
 
 class LandingPageView extends StatefulWidget {
@@ -46,76 +47,78 @@ class _LandingPageViewState extends State<LandingPageView> {
 
   @override
   Widget build(BuildContext context) {
-    Centre().init(context);
+    print("Building landing page");
     return ScrollConfiguration(
       behavior: MyBehavior(),
-      child: Material(
-        child: Scaffold(
-          backgroundColor: Centre.bgColor,
-          body: Stack(
-            children: [
-              PageView(
-                controller: controller,
-                children: [
-                  MultiBlocProvider(providers: [
-                    BlocProvider<WeeklyPlanningBloc>(
-                      create: (_) => WeeklyPlanningBloc(context.read<HiveRepository>()),
-                    ),
-                  ], child: WeeklyPlanningPage()),
-                  MultiBlocProvider(providers: [
-                    BlocProvider<GroceryBloc>(
-                      create: (_) => GroceryBloc(context.read<HiveRepository>()),
-                    ),
-                    BlocProvider<ToggleGroceryDeletingCubit>(
-                      create: (_) => ToggleGroceryDeletingCubit(),
-                    ),
-                    BlocProvider<GroceryCategoryOrderCubit>(
-                      create: (_) => GroceryCategoryOrderCubit(context.read<HiveRepository>()),
-                    ),
-                    BlocProvider<GroceryDraggingItemCubit>(
-                      create: (_) => GroceryDraggingItemCubit(),
-                    ),
-                    BlocProvider<GroceryScrollDraggingCubit>(
-                      create: (_) => GroceryScrollDraggingCubit(),
-                    ),
-                  ], child: GroceryListPage()),
-                  MultiBlocProvider(providers: [
-                    BlocProvider<AllRecipesBloc>(
-                      create: (_) => AllRecipesBloc(context.read<HiveRepository>()),
-                    ),
-                  ], child: AllRecipesPage())
-                ],
-              ),
-              PageNavigationBar(
-                pageController: controller,
-              ),
-              !finishedAnimating
-                  ? AnimatedOpacity(
-                      onEnd: () {
-                        setState(() {
-                          finishedAnimating = true;
-                        });
-                      },
-                      opacity: _visible,
-                      duration: const Duration(milliseconds: 1000),
-                      child: Container(
-                        color: Centre.bgColor,
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.width,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Center(child: LottieBuilder.asset("assets/splash_animation.json")),
-                            SizedBox(
-                              height: Centre.safeBlockVertical * 5.5,
-                            )
-                          ],
-                        ),
+      child: Scaffold(
+        backgroundColor: Centre.bgColor,
+        body: Stack(
+          children: [
+            PageView(
+              controller: controller,
+              children: [
+                MultiBlocProvider(providers: [
+                  BlocProvider<WeeklyPlanningBloc>(
+                    create: (_) => WeeklyPlanningBloc(context.read<HiveRepository>()),
+                  ),
+                ], child: WeeklyPlanningPage()),
+                MultiBlocProvider(providers: [
+                  BlocProvider<GroceryBloc>(
+                    create: (_) => GroceryBloc(context.read<HiveRepository>()),
+                  ),
+                  BlocProvider<ToggleGroceryDeletingCubit>(
+                    create: (_) => ToggleGroceryDeletingCubit(),
+                  ),
+                  BlocProvider<GroceryCategoryOrderCubit>(
+                    create: (_) => GroceryCategoryOrderCubit(context.read<HiveRepository>()),
+                  ),
+                  BlocProvider<GroceryDraggingItemCubit>(
+                    create: (_) => GroceryDraggingItemCubit(),
+                  ),
+                  BlocProvider<GroceryScrollDraggingCubit>(
+                    create: (_) => GroceryScrollDraggingCubit(),
+                  ),
+                  BlocProvider<GroceryAddEntryCubit>(
+                    create: (_) => GroceryAddEntryCubit(),
+                  ),
+                  BlocProvider.value(value: context.read<SettingsBloc>())
+                ], child: GroceryListPage()),
+                MultiBlocProvider(providers: [
+                  BlocProvider<AllRecipesBloc>(
+                    create: (_) => AllRecipesBloc(context.read<HiveRepository>()),
+                  ),
+                ], child: AllRecipesPage())
+              ],
+            ),
+            PageNavigationBar(
+              pageController: controller,
+            ),
+            !finishedAnimating
+                ? AnimatedOpacity(
+                    onEnd: () {
+                      setState(() {
+                        finishedAnimating = true;
+                      });
+                    },
+                    opacity: _visible,
+                    duration: const Duration(milliseconds: 1000),
+                    child: Container(
+                      color: Centre.bgColor,
+                      height: MediaQuery.of(context).size.height,
+                      width: MediaQuery.of(context).size.width,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Center(child: LottieBuilder.asset("assets/splash_animation.json")),
+                          SizedBox(
+                            height: 5.h,
+                          )
+                        ],
                       ),
-                    )
-                  : const SizedBox(),
-            ],
-          ),
+                    ),
+                  )
+                : const SizedBox(),
+          ],
         ),
       ),
     );

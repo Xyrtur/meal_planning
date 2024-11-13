@@ -9,6 +9,7 @@ import 'package:meal_planning/utils/hive_repository.dart';
 import 'package:page_transition/page_transition.dart';
 // Sentry code to get emailed exceptions
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:sizer/sizer.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,7 +21,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    Centre().init(context);
     return Material(
         color: Colors.transparent,
         child: AnimatedSplashScreen.withScreenFunction(
@@ -29,11 +29,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             duration: 500,
             splash: LottieBuilder.asset(
               "assets/splash_animation.json",
-              width: Centre.safeBlockHorizontal * 20,
+              width: 20.w,
             ),
             screenFunction: () async {
               // Sentry code to get emailed exceptions
               try {
+                print("Building splash screen");
                 context.read<HiveRepository>().cacheInitialData();
                 return RepositoryProvider.value(
                   value: context.read<HiveRepository>(),

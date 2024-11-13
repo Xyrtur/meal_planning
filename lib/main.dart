@@ -9,6 +9,7 @@ import 'package:meal_planning/models/grocery_item.dart';
 import 'package:meal_planning/models/recipe.dart';
 import 'package:meal_planning/screens/splash_screen.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
+import 'package:sizer/sizer.dart';
 
 void main() async {
   await Hive.initFlutter();
@@ -18,12 +19,10 @@ void main() async {
   await Hive.openBox<Recipe>('recipesBox');
   await Hive.openBox<dynamic>('mealPlanningBox');
 
-  SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   // Sentry code to get emailed exceptions
   await SentryFlutter.init((options) {
-    options.dsn =
-        'https://8457a9015b0f4e978bd2078b054503cb@o4505104841965568.ingest.sentry.io/4505104845766656';
+    options.dsn = 'https://8457a9015b0f4e978bd2078b054503cb@o4505104841965568.ingest.sentry.io/4505104845766656';
   },
       appRunner: () => runApp(const MealPlanningApp()
           // Sentry code to get emailed exceptions
@@ -36,23 +35,24 @@ class MealPlanningApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', 'GB'),
-      ],
-      title: "Just Eat",
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primarySwatch: Colors.amber,
-        fontFamily: 'Raleway',
+    return Sizer(
+      builder: (context, orientation, screenType) => MaterialApp(
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', 'GB'),
+        ],
+        title: "Just Eat",
+        theme: ThemeData(
+          brightness: Brightness.light,
+          primarySwatch: Colors.amber,
+          fontFamily: 'Raleway',
+        ),
+        home: RepositoryProvider(create: (context) => HiveRepository(), child: const SplashScreen()),
       ),
-      home: RepositoryProvider(
-          create: (context) => HiveRepository(), child: const SplashScreen()),
     );
   }
 }

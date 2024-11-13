@@ -4,9 +4,9 @@ import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/blocs/weekly_planning_bloc.dart';
 import 'package:meal_planning/models/recipe.dart';
 import 'package:meal_planning/utils/centre.dart';
-import 'package:meal_planning/utils/hive_repository.dart';
 import 'package:r_dotted_line_border/r_dotted_line_border.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:sizer/sizer.dart';
 
 class WeeklyPlanningPage extends StatelessWidget {
   const WeeklyPlanningPage({super.key});
@@ -26,19 +26,16 @@ class WeeklyPlanningPage extends StatelessWidget {
                   color: Centre.shadowbgColor,
                   spreadRadius: 2,
                   blurRadius: 7,
-                  offset: Offset(0, 3),
+                  offset: const Offset(0, 3),
                 ),
               ],
               color: Centre.bgColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
             ),
-            margin: EdgeInsets.only(
-                left: Centre.safeBlockHorizontal * 7,
-                right: Centre.safeBlockHorizontal * 7,
-                top: Centre.safeBlockVertical * 2),
-            width: Centre.screenWidth - Centre.safeBlockHorizontal * 14,
-            height: Centre.safeBlockVertical * 8,
-            padding: EdgeInsets.all(Centre.safeBlockHorizontal * 3),
+            margin: EdgeInsets.only(left: 7.w, right: 7.w, top: 2.h),
+            width: 86.w,
+            height: 8.h,
+            padding: EdgeInsets.all(3.w),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -49,18 +46,17 @@ class WeeklyPlanningPage extends StatelessWidget {
                       context.read<WeeklyPlanningBloc>().add(WeeklyPlanningWeekRangePressed(i));
                     },
                     child: SizedBox(
-                        width: Centre.safeBlockHorizontal * (currentWeekRanges.length / 2 == 3 ? 20 : 35),
+                        width: (currentWeekRanges.length / 2 == 3 ? 20 : 35).w,
                         child: Container(
-                          margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 3),
+                          margin: EdgeInsets.symmetric(horizontal: 3.w),
                           decoration: BoxDecoration(
                             color: selected == i ? const Color.fromARGB(255, 218, 180, 197) : Colors.transparent,
-                            borderRadius: BorderRadius.all(Radius.circular(25)),
+                            borderRadius: const BorderRadius.all(Radius.circular(25)),
                           ),
                           child: Center(
                             child: Text(
                               "${currentWeekRanges[i * 2].day} - ${currentWeekRanges[i * 2 + 1].day}",
-                              style: TextStyle(
-                                  fontSize: Centre.safeBlockVertical * (currentWeekRanges.length / 2 == 3 ? 1.7 : 2)),
+                              style: TextStyle(fontSize: (currentWeekRanges.length / 2 == 3 ? 1.7 : 2).h),
                             ),
                           ),
                         )),
@@ -78,13 +74,13 @@ class WeeklyPlanningPage extends StatelessWidget {
         // Provide the all recipes bloc
       },
       child: Container(
-        margin: EdgeInsets.only(bottom: Centre.safeBlockVertical * 0.5),
-        height: Centre.safeBlockVertical * 4,
+        margin: EdgeInsets.only(bottom: 0.5.h),
+        height: 4.h,
         decoration: BoxDecoration(
           color: mealName.isEmpty
               ? const Color.fromARGB(255, 188, 188, 188)
               : Color(context.read<SettingsBloc>().state.recipeCategoriesMap[category] ?? Colors.blueGrey.value),
-          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderRadius: const BorderRadius.all(Radius.circular(25)),
           border: RDottedLineBorder.all(
             width: 1,
           ),
@@ -92,7 +88,7 @@ class WeeklyPlanningPage extends StatelessWidget {
         child: Center(
           child: Text(
             mealName,
-            style: TextStyle(fontSize: Centre.safeBlockVertical * 1.8),
+            style: TextStyle(fontSize: 5.sp),
           ),
         ),
       ),
@@ -102,15 +98,12 @@ class WeeklyPlanningPage extends StatelessWidget {
   Widget dayTile(
       String dayText, List<String> mealsInDay, Map<String, Recipe> recipeTitlestoRecipeMap, BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: Centre.safeBlockHorizontal * 5),
-      width: Centre.safeBlockHorizontal * 20,
+      margin: EdgeInsets.symmetric(horizontal: 5.w),
+      width: 20.w,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            dayText,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: Centre.safeBlockVertical * 2),
-          ),
+          Text(dayText, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17.sp, color: Colors.black)),
           for (int i = 0; i < 5; i++)
             mealTile(
                 mealName: mealsInDay[i],
@@ -144,16 +137,16 @@ class WeeklyPlanningPage extends StatelessWidget {
                 }
               }, builder: (unUsedContext, state) {
                 return MasonryGridView.count(
-                  padding: EdgeInsets.only(top: Centre.safeBlockVertical * 13),
+                  padding: EdgeInsets.only(top: 13.h),
                   crossAxisCount: 2,
-                  mainAxisSpacing: Centre.safeBlockVertical * 4,
-                  crossAxisSpacing: Centre.safeBlockHorizontal,
+                  mainAxisSpacing: 4.h,
+                  crossAxisSpacing: 1.w,
                   itemCount: 9, // 7 days + a space widget to appear staggered
                   itemBuilder: (unUsedContext, index) {
                     if (index == 1) {
-                      return SizedBox(height: Centre.safeBlockVertical * 5);
+                      return SizedBox(height: 5.h);
                     } else if (index == 8) {
-                      return SizedBox(height: Centre.safeBlockVertical * 30);
+                      return SizedBox(height: 30.h);
                     } else {
                       index = index - 1 < 0 ? index : index - 1;
                       return dayTile(

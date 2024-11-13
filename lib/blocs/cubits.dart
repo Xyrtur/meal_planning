@@ -50,9 +50,10 @@ class SettingsEditingTextCubit extends Cubit<List<String>> {
 }
 
 class SettingsAddColorCubit extends Cubit<int?> {
-  SettingsAddColorCubit() : super(null);
+  final int? color;
+  SettingsAddColorCubit(this.color) : super(color);
 
-  void selectColor({required int color}) {
+  void selectColor({required int? color}) {
     emit(color);
   }
 }

@@ -43,8 +43,7 @@ final class UpdateIngredientsCategory extends GroceryEvent {
   final Map<String, List<GroceryItem>> items;
   final String newCategory;
   final bool onlyItemOrderChanged;
-  const UpdateIngredientsCategory(
-      this.items, this.newCategory, this.onlyItemOrderChanged);
+  const UpdateIngredientsCategory(this.items, this.newCategory, this.onlyItemOrderChanged);
 
   @override
   List<Object> get props => [items, newCategory];
@@ -58,7 +57,7 @@ final class DeleteIngredients extends GroceryEvent {
   List<Object> get props => [items];
 }
 
-sealed class GroceryState extends Equatable {
+sealed class GroceryState {
   const GroceryState();
 
   @override
