@@ -47,18 +47,27 @@ class HiveRepository {
     mealPlanningBox = Hive.box<dynamic>('mealPlanningBox');
 
     recipeList = recipesBox.values.cast<Recipe>().toList();
-    recipeCategoriesMap = (mealPlanningBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
-    groceryCategoriesMap = (mealPlanningBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
-    genericCategoriesMap = (mealPlanningBox.get('genericCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    recipeCategoriesMap =
+        (mealPlanningBox.get('recipeCategoriesMap') ?? <String, int>{})
+            .cast<String, int>();
+    groceryCategoriesMap =
+        (mealPlanningBox.get('groceryCategoriesMap') ?? <String, int>{})
+            .cast<String, int>();
+    genericCategoriesMap =
+        (mealPlanningBox.get('genericCategoriesMap') ?? <String, int>{})
+            .cast<String, int>();
     (mealPlanningBox.get('groceryItemsMap') ?? {}).forEach((key, value) {
       if (key is String && value is List<dynamic>) {
         groceryItemsMap[key] = value.whereType<GroceryItem>().toList();
       }
     });
 
-    currentWeekRanges = (mealPlanningBox.get('currentWeekRanges') ?? []).cast<DateTime>();
-    weeklyMealsList = (mealPlanningBox.get('weeklyMealsList') ?? []).cast<String>();
-    groceryCategoryOrder = (mealPlanningBox.get('groceryCategoryOrder') ?? []).cast<String>();
+    currentWeekRanges =
+        (mealPlanningBox.get('currentWeekRanges') ?? []).cast<DateTime>();
+    weeklyMealsList =
+        (mealPlanningBox.get('weeklyMealsList') ?? []).cast<String>();
+    groceryCategoryOrder =
+        (mealPlanningBox.get('groceryCategoryOrder') ?? []).cast<String>();
 
     recipeTitlestoRecipeMap.clear();
     weeklyMealsSplit.clear();
@@ -78,10 +87,14 @@ class HiveRepository {
     // If there are no week ranges set OR today's date is not within the stored ranges
     if (currentWeekRanges.isEmpty ||
         !(DateTime.now().isBetweenDates(
-            currentWeekRanges[0], currentWeekRanges.length == 6 ? currentWeekRanges[5] : currentWeekRanges[3]))) {
+            currentWeekRanges[0],
+            currentWeekRanges.length == 6
+                ? currentWeekRanges[5]
+                : currentWeekRanges[3]))) {
       currentWeekRanges.clear();
       weeklyMealsList.clear();
-      DateTime startOfRanges = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+      DateTime startOfRanges =
+          DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
       currentWeekRanges.add(startOfRanges);
       currentWeekRanges.add(startOfRanges.add(Duration(days: 6)));
 
@@ -98,12 +111,14 @@ class HiveRepository {
       }
     } else {
       // Prune the list
-      if (DateTime.now().isBetweenDates(currentWeekRanges[2], currentWeekRanges[3])) {
+      if (DateTime.now()
+          .isBetweenDates(currentWeekRanges[2], currentWeekRanges[3])) {
         // Lops off first week
         currentWeekRanges.removeRange(0, 2);
         weeklyMealsList.removeRange(0, 35);
       } else if (currentWeekRanges.length == 6 &&
-          DateTime.now().isBetweenDates(currentWeekRanges[4], currentWeekRanges[5])) {
+          DateTime.now()
+              .isBetweenDates(currentWeekRanges[4], currentWeekRanges[5])) {
         // Lops off first and second week
         currentWeekRanges.removeRange(0, 4);
         weeklyMealsList.removeRange(0, 70);
@@ -143,13 +158,16 @@ class HiveRepository {
   }
 
   // Settings page
-  void deleteCategory({required CategoryType type, required String categoryName}) {
+  void deleteCategory(
+      {required CategoryType type, required String categoryName}) {
     switch (type) {
       case CategoryType.grocery:
         groceryCategoriesMap.remove(categoryName);
         groceryCategoryOrder.remove(categoryName);
         if (groceryItemsMap[categoryName]!.isNotEmpty) {
-          groceryItemsMap.update("Other", (list) => list..addAll(groceryItemsMap[categoryName]!), ifAbsent: () {
+          groceryItemsMap.update(
+              "Other", (list) => list..addAll(groceryItemsMap[categoryName]!),
+              ifAbsent: () {
             groceryCategoriesMap["Other"] = Colors.blueGrey.value;
             groceryCategoryOrder.add("Other");
             return groceryItemsMap[categoryName]!;
@@ -166,8 +184,11 @@ class HiveRepository {
       case CategoryType.recipe:
         recipeCategoriesMap.remove(categoryName);
         if (recipeCategoriesToRecipeTitlesMap[categoryName]!.isNotEmpty) {
-          recipeCategoriesToRecipeTitlesMap
-              .update("Other", (list) => list..addAll(recipeCategoriesToRecipeTitlesMap[categoryName]!), ifAbsent: () {
+          recipeCategoriesToRecipeTitlesMap.update(
+              "Other",
+              (list) => list
+                ..addAll(recipeCategoriesToRecipeTitlesMap[categoryName]!),
+              ifAbsent: () {
             recipeCategoriesMap["Other"] = Colors.blueGrey.value;
             return recipeCategoriesToRecipeTitlesMap[categoryName]!;
           });
@@ -192,7 +213,10 @@ class HiveRepository {
     }
   }
 
-  void addCategory({required CategoryType type, required String categoryName, required int color}) {
+  void addCategory(
+      {required CategoryType type,
+      required String categoryName,
+      required int color}) {
     switch (type) {
       case CategoryType.grocery:
         groceryCategoriesMap[categoryName] = color;
@@ -217,7 +241,11 @@ class HiveRepository {
     }
   }
 
-  void updateCategory({required CategoryType type, required String oldName, String? newName, int? color}) {
+  void updateCategory(
+      {required CategoryType type,
+      required String oldName,
+      String? newName,
+      int? color}) {
     switch (type) {
       case CategoryType.grocery:
         if (color != null) {
@@ -240,7 +268,8 @@ class HiveRepository {
         } else {
           int val = recipeCategoriesMap.remove(oldName)!;
           recipeCategoriesMap[newName!] = val;
-          List<String> items = recipeCategoriesToRecipeTitlesMap.remove(oldName)!;
+          List<String> items =
+              recipeCategoriesToRecipeTitlesMap.remove(oldName)!;
           recipeCategoriesToRecipeTitlesMap[newName] = items;
         }
         mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
@@ -269,7 +298,7 @@ class HiveRepository {
   void updateGroceryItems({
     required bool updatingChecked,
     required bool noCategoryUpdated,
-    required Map<String, List<GroceryItem>> items,
+    Map<String, List<GroceryItem>>? items,
     String? currentCategory,
     int? index,
     bool? checked,
@@ -277,29 +306,28 @@ class HiveRepository {
     if (updatingChecked) {
       // if checked is not set, then whole category(ies) are being checked off/on
       if (checked != null) {
-        groceryItemsMap[items.keys.first]![index!].isChecked = checked;
-      }
-      for (String category in items.keys) {
+        groceryItemsMap[currentCategory]![index!].isChecked = checked;
+      } else {
         bool allCheckedOff = true;
-        if (items.length > 1) {
-          for (int i = 0; i < groceryItemsMap[category]!.length; i++) {
-            if (!groceryItemsMap[category]![i].isChecked) {
-              allCheckedOff = false;
-              break;
-            }
+
+        for (int i = 0; i < groceryItemsMap[currentCategory]!.length; i++) {
+          if (!groceryItemsMap[currentCategory]![i].isChecked) {
+            allCheckedOff = false;
+            break;
           }
-          checked = !allCheckedOff;
         }
-        for (int i = 0; i < groceryItemsMap[category]!.length; i++) {
-          groceryItemsMap[category]![i].isChecked = checked!;
+        checked = !allCheckedOff;
+
+        for (int i = 0; i < groceryItemsMap[currentCategory]!.length; i++) {
+          groceryItemsMap[currentCategory]![i].isChecked = checked;
         }
       }
     } else {
       if (noCategoryUpdated) {
-        groceryItemsMap[items.keys.first] = items[items.keys.first]!;
+        groceryItemsMap[items!.keys.first] = items[items.keys.first]!;
       } else {
         // Updating categories of moved items
-        for (String category in items.keys) {
+        for (String category in items!.keys) {
           for (GroceryItem item in items[category]!) {
             groceryItemsMap[category]!.remove(item);
           }
@@ -310,10 +338,18 @@ class HiveRepository {
     mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
   }
 
-  void deleteGroceryItems(Map<String, List<GroceryItem>> itemsToDelete) {
-    for (String category in itemsToDelete.keys) {
-      for (GroceryItem item in itemsToDelete[category]!) {
-        groceryItemsMap[category]!.remove(item);
+  void deleteGroceryItems(
+      {required Map<String, List<GroceryItem>> itemsToDelete,
+      required bool clearAll}) {
+    if (clearAll) {
+      for (String category in groceryItemsMap.keys) {
+        groceryItemsMap[category]!.clear();
+      }
+    } else {
+      for (String category in itemsToDelete.keys) {
+        for (GroceryItem item in itemsToDelete[category]!) {
+          groceryItemsMap[category]!.remove(item);
+        }
       }
     }
     mealPlanningBox.put('groceryItemsMap', groceryItemsMap);

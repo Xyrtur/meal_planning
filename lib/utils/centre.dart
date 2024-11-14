@@ -32,11 +32,20 @@ class Centre {
     Color.fromARGB(255, 190, 225, 230),
   ];
 
-  static final titleText =
-      TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 15.sp, fontFamily: 'Raleway');
+  static final titleText = TextStyle(
+      color: Colors.black,
+      fontWeight: FontWeight.w400,
+      fontSize: 20.sp,
+      fontFamily: 'Raleway');
 
-  static final semiTitleText =
-      TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 10.sp, fontFamily: 'Raleway');
-  static final listText =
-      TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 8.sp, fontFamily: 'Raleway');
+  static final semiTitleText = TextStyle(
+      color: Colors.black,
+      fontWeight: FontWeight.w400,
+      fontSize: 17.sp,
+      fontFamily: 'Raleway');
+  static final listText = TextStyle(
+      color: Colors.black,
+      fontWeight: FontWeight.w400,
+      fontSize: 15.sp,
+      fontFamily: 'Raleway');
 }

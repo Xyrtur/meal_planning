@@ -59,7 +59,8 @@ class _LandingPageViewState extends State<LandingPageView> {
               children: [
                 MultiBlocProvider(providers: [
                   BlocProvider<WeeklyPlanningBloc>(
-                    create: (_) => WeeklyPlanningBloc(context.read<HiveRepository>()),
+                    create: (_) =>
+                        WeeklyPlanningBloc(context.read<HiveRepository>()),
                   ),
                 ], child: WeeklyPlanningPage()),
                 MultiBlocProvider(providers: [
@@ -70,7 +71,8 @@ class _LandingPageViewState extends State<LandingPageView> {
                     create: (_) => ToggleGroceryDeletingCubit(),
                   ),
                   BlocProvider<GroceryCategoryOrderCubit>(
-                    create: (_) => GroceryCategoryOrderCubit(context.read<HiveRepository>()),
+                    create: (_) => GroceryCategoryOrderCubit(
+                        context.read<HiveRepository>()),
                   ),
                   BlocProvider<GroceryDraggingItemCubit>(
                     create: (_) => GroceryDraggingItemCubit(),
@@ -78,14 +80,12 @@ class _LandingPageViewState extends State<LandingPageView> {
                   BlocProvider<GroceryScrollDraggingCubit>(
                     create: (_) => GroceryScrollDraggingCubit(),
                   ),
-                  BlocProvider<GroceryAddEntryCubit>(
-                    create: (_) => GroceryAddEntryCubit(),
-                  ),
                   BlocProvider.value(value: context.read<SettingsBloc>())
                 ], child: GroceryListPage()),
                 MultiBlocProvider(providers: [
                   BlocProvider<AllRecipesBloc>(
-                    create: (_) => AllRecipesBloc(context.read<HiveRepository>()),
+                    create: (_) =>
+                        AllRecipesBloc(context.read<HiveRepository>()),
                   ),
                 ], child: AllRecipesPage())
               ],
@@ -109,7 +109,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Center(child: LottieBuilder.asset("assets/splash_animation.json")),
+                          Center(
+                              child: LottieBuilder.asset(
+                                  "assets/splash_animation.json")),
                           SizedBox(
                             height: 5.h,
                           )
@@ -127,7 +129,8 @@ class _LandingPageViewState extends State<LandingPageView> {
 
 class MyBehavior extends ScrollBehavior {
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
     return child;
   }
 }

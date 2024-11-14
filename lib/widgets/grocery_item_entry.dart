@@ -14,18 +14,24 @@ class GroceryAddEntry extends StatefulWidget {
   State<GroceryAddEntry> createState() => GroceryAddEntryState();
 }
 
-class GroceryAddEntryState extends State<GroceryAddEntry> with TickerProviderStateMixin {
+class GroceryAddEntryState extends State<GroceryAddEntry>
+    with TickerProviderStateMixin {
   late final AnimationController animController;
   static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TextEditingController controller = TextEditingController();
+  late Animation<double> animation;
 
   @override
   initState() {
+    super.initState();
     animController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    super.initState();
+    animation = CurvedAnimation(
+      parent: animController,
+      curve: Curves.fastOutSlowIn,
+    );
     // widget.focusNode.requestFocus();
   }
 
@@ -46,11 +52,6 @@ class GroceryAddEntryState extends State<GroceryAddEntry> with TickerProviderSta
 
   @override
   Widget build(BuildContext context) {
-    Animation<double> animation = CurvedAnimation(
-      parent: animController,
-      curve: Curves.fastOutSlowIn,
-    );
-
     return AnimatedBuilder(
         key: const ValueKey(12345),
         animation: animation,
@@ -85,9 +86,10 @@ class GroceryAddEntryState extends State<GroceryAddEntry> with TickerProviderSta
                   GestureDetector(
                     onTap: () {
                       if (formKey.currentState!.validate()) {
-                        context
-                            .read<GroceryBloc>()
-                            .add(AddIngredient(GroceryItem(name: controller.text, isChecked: false), widget.category));
+                        context.read<GroceryBloc>().add(AddIngredient(
+                            GroceryItem(
+                                name: controller.text, isChecked: false),
+                            widget.category));
                         context.read<GroceryAddEntryCubit>().update("");
                       }
                     },
@@ -115,7 +117,8 @@ class GroceryAddEntryState extends State<GroceryAddEntry> with TickerProviderSta
                       decoration: InputDecoration(
                         errorStyle: const TextStyle(height: 0.5),
                         hintText: "Ingredient name",
-                        hintStyle: Centre.listText.copyWith(color: Colors.blueGrey),
+                        hintStyle:
+                            Centre.listText.copyWith(color: Colors.blueGrey),
                         isDense: true,
                       ),
                       controller: controller,
@@ -138,19 +141,16 @@ Widget draggableItemEntry(
   return LongPressDraggable<GroceryItem>(
     data: item,
     onDragStarted: () {
-      context
-          .read<GroceryDraggingItemCubit>()
-          .update(draggingIndex: index, hoveringIndex: index, originCategory: category);
+      context.read<GroceryDraggingItemCubit>().update(
+          draggingIndex: index, hoveringIndex: index, originCategory: category);
     },
     onDragCompleted: () {
-      context
-          .read<GroceryDraggingItemCubit>()
-          .update(draggingIndex: null, hoveringIndex: null, originCategory: category);
+      context.read<GroceryDraggingItemCubit>().update(
+          draggingIndex: null, hoveringIndex: null, originCategory: category);
     },
     onDraggableCanceled: (velocity, offset) {
-      context
-          .read<GroceryDraggingItemCubit>()
-          .update(draggingIndex: null, hoveringIndex: null, originCategory: category);
+      context.read<GroceryDraggingItemCubit>().update(
+          draggingIndex: null, hoveringIndex: null, originCategory: category);
     },
     feedback: Material(
       child: itemEntry(
@@ -165,26 +165,28 @@ Widget draggableItemEntry(
     child: DragTarget<GroceryItem>(
       onWillAcceptWithDetails: (data) {
         if (data.data != item) {
-          context
-              .read<GroceryDraggingItemCubit>()
-              .update(draggingIndex: draggingIndex, hoveringIndex: index, originCategory: category);
+          context.read<GroceryDraggingItemCubit>().update(
+              draggingIndex: draggingIndex,
+              hoveringIndex: index,
+              originCategory: category);
           return true;
         }
-        context
-            .read<GroceryDraggingItemCubit>()
-            .update(draggingIndex: draggingIndex, hoveringIndex: index, originCategory: category);
+        context.read<GroceryDraggingItemCubit>().update(
+            draggingIndex: draggingIndex,
+            hoveringIndex: index,
+            originCategory: category);
         return false;
       },
       onAcceptWithDetails: (data) {
-        context
-            .read<GroceryDraggingItemCubit>()
-            .update(draggingIndex: null, hoveringIndex: null, originCategory: category);
+        context.read<GroceryDraggingItemCubit>().update(
+            draggingIndex: null, hoveringIndex: null, originCategory: category);
         onReorder(data.data);
       },
       onLeave: (data) {
-        context
-            .read<GroceryDraggingItemCubit>()
-            .update(draggingIndex: draggingIndex, hoveringIndex: null, originCategory: category);
+        context.read<GroceryDraggingItemCubit>().update(
+            draggingIndex: draggingIndex,
+            hoveringIndex: null,
+            originCategory: category);
       },
       builder: (context, candidateData, rejectedData) {
         return hoveringIndex == null && draggingIndex == null
@@ -211,7 +213,8 @@ Widget draggableItemEntry(
                                     : 8.h
                                 : 0,
                             0)
-                        : (hoveringIndex != null && (draggingIndex! < hoveringIndex))
+                        : (hoveringIndex != null &&
+                                (draggingIndex! < hoveringIndex))
                             ? Matrix4.translationValues(
                                 0,
                                 (index <= hoveringIndex)
@@ -252,13 +255,12 @@ Widget itemEntry(
               GestureDetector(
                   onTap: () {
                     if (inDeleteMode) {
-                      context.read<GroceryBloc>().add(DeleteIngredients({
+                      context.read<GroceryBloc>().add(DeleteIngredients(items: {
                             category: [item]
-                          }));
+                          }, clearAll: false));
                     } else {
-                      context.read<GroceryBloc>().add(UpdateIngredientsChecked(!item.isChecked, index, {
-                            category: [item]
-                          }));
+                      context.read<GroceryBloc>().add(UpdateIngredientsChecked(
+                          !item.isChecked, index, category));
                     }
                   },
                   child: inDeleteMode
@@ -269,14 +271,15 @@ Widget itemEntry(
               GestureDetector(
                 onTap: () {
                   if (!inDeleteMode) {
-                    context.read<GroceryBloc>().add(UpdateIngredientsChecked(!item.isChecked, index, {
-                          category: [item]
-                        }));
+                    context.read<GroceryBloc>().add(UpdateIngredientsChecked(
+                        !item.isChecked, index, category));
                   }
                 },
                 child: Text(
                   item.name,
-                  style: Centre.listText.copyWith(decoration: item.isChecked ? TextDecoration.lineThrough : null),
+                  style: Centre.listText.copyWith(
+                      decoration:
+                          item.isChecked ? TextDecoration.lineThrough : null),
                 ),
               )
             ],

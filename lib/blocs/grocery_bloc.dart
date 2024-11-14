@@ -9,7 +9,7 @@ sealed class GroceryEvent extends Equatable {
   const GroceryEvent();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 final class ToggleGroceryCategory extends GroceryEvent {
@@ -31,19 +31,22 @@ final class AddIngredient extends GroceryEvent {
 
 final class UpdateIngredientsChecked extends GroceryEvent {
   final bool? checked;
-  final int index;
-  final Map<String, List<GroceryItem>> items;
-  const UpdateIngredientsChecked(this.checked, this.index, this.items);
+  final int? index;
+  final String category;
+  const UpdateIngredientsChecked(this.checked, this.index, this.category);
 
   @override
-  List<Object> get props => [checked ?? checked.toString(), index, items];
+  List<Object?> get props => [checked, index, category];
 }
 
 final class UpdateIngredientsCategory extends GroceryEvent {
   final Map<String, List<GroceryItem>> items;
   final String newCategory;
   final bool onlyItemOrderChanged;
-  const UpdateIngredientsCategory(this.items, this.newCategory, this.onlyItemOrderChanged);
+  const UpdateIngredientsCategory(
+      {required this.items,
+      required this.newCategory,
+      required this.onlyItemOrderChanged});
 
   @override
   List<Object> get props => [items, newCategory];
@@ -51,7 +54,8 @@ final class UpdateIngredientsCategory extends GroceryEvent {
 
 final class DeleteIngredients extends GroceryEvent {
   final Map<String, List<GroceryItem>> items;
-  const DeleteIngredients(this.items);
+  final bool clearAll;
+  const DeleteIngredients({required this.items, required this.clearAll});
 
   @override
   List<Object> get props => [items];
@@ -110,14 +114,15 @@ class GroceryBloc extends Bloc<GroceryEvent, GroceryState> {
       hive.updateGroceryItems(
           noCategoryUpdated: false,
           updatingChecked: true,
-          items: event.items,
+          currentCategory: event.category,
           checked: event.checked,
           index: event.index);
-      emit(GroceryListUpdated(event.items));
+      emit(GroceryListUpdated(hive.groceryItemsMap));
     });
 
     on<DeleteIngredients>((event, emit) {
-      hive.deleteGroceryItems(event.items);
+      hive.deleteGroceryItems(
+          itemsToDelete: event.items, clearAll: event.clearAll);
       emit(GroceryListUpdated(hive.groceryItemsMap));
     });
 

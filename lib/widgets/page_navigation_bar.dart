@@ -14,7 +14,9 @@ class PageNavigationBar extends StatelessWidget {
   Widget pageNavButton({required int index, required IconData icon}) {
     return GestureDetector(
         onTap: () {
-          pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+          pageController.animateToPage(index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut);
         },
         child: Icon(
           icon,
@@ -47,7 +49,8 @@ class PageNavigationBar extends StatelessWidget {
                       ),
                     ],
                     color: Centre.bgColor,
-                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10))),
                   ),
                   width: 60.w,
                   padding: EdgeInsets.all(3.w),
@@ -63,11 +66,16 @@ class PageNavigationBar extends StatelessWidget {
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (unUsedContext) => MultiBlocProvider(providers: [
-                              BlocProvider(create: (_) => SettingsBloc(context.read<HiveRepository>())),
-                              BlocProvider(create: (_) => SettingsEditingTextCubit())
-                            ], child: SettingsPage())));
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (unUsedContext) =>
+                                MultiBlocProvider(providers: [
+                                  BlocProvider.value(
+                                      value: context.read<SettingsBloc>()),
+                                  BlocProvider(
+                                      create: (_) => SettingsEditingTextCubit())
+                                ], child: SettingsPage())))
+                        .then((_) {});
                   },
                   child: Container(
                     decoration: ShapeDecoration(
@@ -80,7 +88,8 @@ class PageNavigationBar extends StatelessWidget {
                         ),
                       ],
                       color: Centre.bgColor,
-                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                      shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10))),
                     ),
                     width: 10.w,
                     padding: EdgeInsets.all(0.5.w),

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,7 +35,8 @@ class SettingsPage extends StatelessWidget {
             editingName == null || editingName != name
                 ? GestureDetector(
                     onTap: () {
-                      context.read<SettingsEditingTextCubit>().editing(type: type.toString().split('.')[1], name: name);
+                      context.read<SettingsEditingTextCubit>().editing(
+                          type: type.toString().split('.')[1], name: name);
                     },
                     child: Text(name))
                 : CategoryTextField(
@@ -43,15 +46,16 @@ class SettingsPage extends StatelessWidget {
                   ),
             const Spacer(),
             editingName == null || editingName != name
-                ? SizedBox()
+                ? const SizedBox()
                 : GestureDetector(
                     onTap: () {
                       if (formKey.currentState!.validate()) {
-                        context
-                            .read<SettingsBloc>()
-                            .add(SettingsUpdateCategory(type, name, editingController.text, null));
+                        context.read<SettingsBloc>().add(SettingsUpdateCategory(
+                            type, name, editingController.text, null));
                         editingController.clear();
-                        context.read<SettingsEditingTextCubit>().editing(type: "", name: "");
+                        context
+                            .read<SettingsEditingTextCubit>()
+                            .editing(type: "", name: "");
                       }
                     },
                     child: const SizedBox(
@@ -65,15 +69,21 @@ class SettingsPage extends StatelessWidget {
                 : GestureDetector(
                     onTap: () {
                       if (editingName == null || editingName != name) {
-                        context.read<SettingsBloc>().add(SettingsDeleteCategory(type, name));
+                        context
+                            .read<SettingsBloc>()
+                            .add(SettingsDeleteCategory(type, name));
                       } else {
                         editingController.clear();
-                        context.read<SettingsEditingTextCubit>().editing(type: "", name: "");
+                        context
+                            .read<SettingsEditingTextCubit>()
+                            .editing(type: "", name: "");
                       }
                     },
                     child: SizedBox(
                       child: Center(
-                        child: Icon(editingName == null || editingName != name ? Icons.delete : Icons.close),
+                        child: Icon(editingName == null || editingName != name
+                            ? Icons.delete
+                            : Icons.close),
                       ),
                     ),
                   )
@@ -82,12 +92,18 @@ class SettingsPage extends StatelessWidget {
       ]);
     });
     return [
-      Text("Change ${type.toString().split('.')[1]} categories"),
+      Text(
+        "Change ${type.toString().split('.')[1]} categories",
+        style: Centre.listText,
+      ),
       ...categoryList,
       BlocProvider<SettingsAddColorCubit>(
           create: (_) => SettingsAddColorCubit(null),
-          child: AddCategoryTextField(type: type, existingCategories: categories.keys.toList())),
-      const Divider(color: Colors.grey)
+          child: AddCategoryTextField(
+              type: type, existingCategories: categories.keys.toList())),
+      const Divider(
+        color: Colors.grey,
+      )
     ];
   }
 
@@ -98,8 +114,10 @@ class SettingsPage extends StatelessWidget {
       backgroundColor: Centre.bgColor,
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 2.w),
-        child: BlocBuilder<SettingsEditingTextCubit, List<String>>(builder: (context, editingState) {
-          return BlocBuilder<SettingsBloc, SettingsState>(builder: (context, settingsState) {
+        child: BlocBuilder<SettingsEditingTextCubit, List<String>>(
+            builder: (context, editingState) {
+          return BlocBuilder<SettingsBloc, SettingsState>(
+              builder: (context, settingsState) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -111,20 +129,26 @@ class SettingsPage extends StatelessWidget {
                     context: context,
                     type: CategoryType.grocery,
                     categories: settingsState.groceryCategoriesMap,
-                    editingName:
-                        editingState[0] == CategoryType.grocery.toString().split('.')[1] ? editingState[0] : null),
+                    editingName: editingState[0] ==
+                            CategoryType.grocery.toString().split('.')[1]
+                        ? editingState[0]
+                        : null),
                 ...changeArea(
                     context: context,
                     type: CategoryType.recipe,
                     categories: settingsState.recipeCategoriesMap,
-                    editingName:
-                        editingState[0] == CategoryType.recipe.toString().split('.')[1] ? editingState[0] : null),
+                    editingName: editingState[0] ==
+                            CategoryType.recipe.toString().split('.')[1]
+                        ? editingState[0]
+                        : null),
                 ...changeArea(
                     context: context,
                     type: CategoryType.generic,
                     categories: settingsState.genericCategoriesMap,
-                    editingName:
-                        editingState[0] == CategoryType.generic.toString().split('.')[1] ? editingState[0] : null),
+                    editingName: editingState[0] ==
+                            CategoryType.generic.toString().split('.')[1]
+                        ? editingState[0]
+                        : null),
                 GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(
@@ -134,13 +158,16 @@ class SettingsPage extends StatelessWidget {
                             color: Centre.shadowbgColor,
                             spreadRadius: 2,
                             blurRadius: 7,
-                            offset: Offset(0, 3),
+                            offset: const Offset(0, 3),
                           ),
                         ],
                         color: Centre.bgColor,
-                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(10))),
                       ),
-                      margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 2.h),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 15.w, vertical: 2.h),
                       height: 6.h,
                       child: Center(
                         child: Text(
@@ -171,15 +198,20 @@ class ChooseColorBtn extends StatelessWidget {
               followerAnchor: Alignment.topLeft,
               targetAnchor: Alignment.bottomLeft,
               avoidOverflow: true,
+              barrierColor: Colors.transparent,
               context: context,
               builder: (BuildContext dialogContext) => GestureDetector(
                   onTap: () {
-                    context
-                        .read<SettingsBloc>()
-                        .add(SettingsUpdateCategory(type, name, null, context.read<SettingsAddColorCubit>().state));
+                    context.read<SettingsBloc>().add(SettingsUpdateCategory(
+                        type,
+                        name,
+                        null,
+                        context.read<SettingsAddColorCubit>().state));
                     Navigator.pop(dialogContext);
                   },
-                  child: const Scaffold(backgroundColor: Colors.transparent, body: ChooseColorDialog())));
+                  child: const Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: ChooseColorDialog())));
         },
         child: BlocBuilder<SettingsAddColorCubit, int?>(
             builder: (context, chosenColor) => Container(
@@ -189,7 +221,8 @@ class ChooseColorBtn extends StatelessWidget {
                   decoration: BoxDecoration(
                       color: Color(chosenColor!),
                       border: Border.all(color: Colors.white, width: 1.5),
-                      borderRadius: const BorderRadius.all(Radius.circular(40))),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(40))),
                 )));
   }
 }
@@ -199,7 +232,10 @@ class CategoryTextField extends StatefulWidget {
   final TextEditingController controller;
   final GlobalKey formKey;
   const CategoryTextField(
-      {super.key, required this.controller, required this.formKey, required this.existingCategories});
+      {super.key,
+      required this.controller,
+      required this.formKey,
+      required this.existingCategories});
 
   @override
   State<CategoryTextField> createState() => _MyWidgetState();
@@ -241,7 +277,8 @@ class _MyWidgetState extends State<CategoryTextField> {
 class AddCategoryTextField extends StatefulWidget {
   final CategoryType type;
   final List<String> existingCategories;
-  const AddCategoryTextField({super.key, required this.existingCategories, required this.type});
+  const AddCategoryTextField(
+      {super.key, required this.existingCategories, required this.type});
 
   @override
   State<AddCategoryTextField> createState() => _AddCategoryTextFieldState();
@@ -261,34 +298,39 @@ class _AddCategoryTextFieldState extends State<AddCategoryTextField> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        BlocBuilder<SettingsAddColorCubit, int?>(builder: (context, state) {
-          return GestureDetector(
-              onTap: () {
-                showAlignedDialog(
-                    followerAnchor: Alignment.topLeft,
-                    targetAnchor: Alignment.topLeft,
-                    avoidOverflow: true,
-                    context: context,
-                    builder: (BuildContext dialogContext) => GestureDetector(
-                          onTap: () => Navigator.pop(dialogContext),
-                          child: Scaffold(
-                            backgroundColor: Colors.transparent,
-                            body: BlocProvider<SettingsAddColorCubit>.value(
-                              value: context.read<SettingsAddColorCubit>(),
-                              child: const ChooseColorDialog(),
+        BlocBuilder<SettingsAddColorCubit, int?>(
+            builder: (unUsedContext, state) {
+          return Builder(builder: (context) {
+            return GestureDetector(
+                onTap: () {
+                  showAlignedDialog(
+                      followerAnchor: Alignment.topLeft,
+                      targetAnchor: Alignment.bottomLeft,
+                      barrierColor: Colors.transparent,
+                      offset: Offset(6.w, 6.w),
+                      context: context,
+                      builder: (BuildContext dialogContext) => GestureDetector(
+                            onTap: () => Navigator.pop(dialogContext),
+                            child: Scaffold(
+                              backgroundColor: Colors.transparent,
+                              body: BlocProvider<SettingsAddColorCubit>.value(
+                                value: context.read<SettingsAddColorCubit>(),
+                                child: const ChooseColorDialog(),
+                              ),
                             ),
-                          ),
-                        ));
-              },
-              child: Container(
-                margin: EdgeInsets.only(right: 2.w),
-                width: 6.w,
-                height: 6.2,
-                decoration: BoxDecoration(
-                    color: Color(state ?? Centre.bgColor.value),
-                    border: Border.all(color: Colors.white, width: 1.5),
-                    borderRadius: const BorderRadius.all(Radius.circular(40))),
-              ));
+                          ));
+                },
+                child: Container(
+                  margin: EdgeInsets.only(right: 2.w),
+                  width: 6.w,
+                  height: 6.w,
+                  decoration: BoxDecoration(
+                      color: Color(state ?? Centre.bgColor.value),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                      borderRadius:
+                          const BorderRadius.all(Radius.circular(40))),
+                ));
+          });
         }),
         SizedBox(
           width: 60.w,
@@ -304,7 +346,8 @@ class _AddCategoryTextFieldState extends State<AddCategoryTextField> {
                   return 'Too long';
                 } else if (widget.existingCategories.contains(text)) {
                   return 'Category already exists';
-                } else if (context.read<SettingsAddColorCubit>().state == null) {
+                } else if (context.read<SettingsAddColorCubit>().state ==
+                    null) {
                   return 'No color chosen';
                 }
                 return null;
@@ -322,9 +365,10 @@ class _AddCategoryTextFieldState extends State<AddCategoryTextField> {
         GestureDetector(
           onTap: () {
             if (formKey.currentState!.validate()) {
-              context
-                  .read<SettingsBloc>()
-                  .add(SettingsAddCategory(widget.type, controller.text, context.read<SettingsAddColorCubit>().state!));
+              context.read<SettingsBloc>().add(SettingsAddCategory(
+                  widget.type,
+                  controller.text,
+                  context.read<SettingsAddColorCubit>().state!));
               controller.clear();
               context.read<SettingsAddColorCubit>().selectColor(color: null);
             }
@@ -350,9 +394,12 @@ class ChooseColorDialog extends StatelessWidget {
     Widget colourBtn(int i) {
       return GestureDetector(
         onTap: () {
-          context.read<SettingsAddColorCubit>().selectColor(color: Centre.colors[i].value);
+          context
+              .read<SettingsAddColorCubit>()
+              .selectColor(color: Centre.colors[i].value);
         },
-        child: BlocBuilder<SettingsAddColorCubit, int?>(builder: (context, chosenColor) {
+        child: BlocBuilder<SettingsAddColorCubit, int?>(
+            builder: (context, chosenColor) {
           return Container(
             margin: EdgeInsets.only(top: 1.3.h),
             width: 6.w,
@@ -375,8 +422,9 @@ class ChooseColorDialog extends StatelessWidget {
 
     return AlertDialog(
         contentPadding: EdgeInsets.all(2.w),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
-        backgroundColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20))),
+        backgroundColor: Centre.shadowbgColor,
         elevation: 0,
         content: SizedBox(
             height: 18.h,
@@ -386,7 +434,9 @@ class ChooseColorDialog extends StatelessWidget {
                 for (int i = 0; i < 4; i++)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [for (int j = 0; j < 5; j++) colourBtn(i * 5 + j)],
+                    children: [
+                      for (int j = 0; j < 5; j++) colourBtn(i * 5 + j)
+                    ],
                   )
               ],
             )));

@@ -27,14 +27,20 @@ class GroceryCategoryBox extends StatefulWidget {
   State<GroceryCategoryBox> createState() => _GroceryCategoryBoxState();
 }
 
-class _GroceryCategoryBoxState extends State<GroceryCategoryBox> with TickerProviderStateMixin {
-  final GlobalKey<GroceryAddEntryState> groceryAddEntryKey = GlobalKey<GroceryAddEntryState>();
-  Widget circularButton({required void Function() onTap, required Color categoryColor, required IconData icon}) {
+class _GroceryCategoryBoxState extends State<GroceryCategoryBox>
+    with TickerProviderStateMixin {
+  final GlobalKey<GroceryAddEntryState> groceryAddEntryKey =
+      GlobalKey<GroceryAddEntryState>();
+  Widget circularButton(
+      {required void Function() onTap,
+      required Color categoryColor,
+      required IconData icon}) {
     return GestureDetector(
         onTap: onTap,
         child: Container(
+          padding: EdgeInsets.all(1.w),
           decoration: BoxDecoration(
-              border: Border.all(color: categoryColor, width: 1.w),
+              border: Border.all(color: categoryColor, width: 0.5.w),
               borderRadius: const BorderRadius.all(Radius.circular(20))),
           child: Icon(icon),
         ));
@@ -42,7 +48,8 @@ class _GroceryCategoryBoxState extends State<GroceryCategoryBox> with TickerProv
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GroceryDraggingItemCubit, List<dynamic>>(buildWhen: (previous, current) {
+    return BlocBuilder<GroceryDraggingItemCubit, List<dynamic>>(
+        buildWhen: (previous, current) {
       // Prevents other category boxes from updating their drag indices as well
       return (current[2] as String) == widget.categoryName;
     }, builder: (context, dragHoverInfo) {
@@ -52,10 +59,13 @@ class _GroceryCategoryBoxState extends State<GroceryCategoryBox> with TickerProv
             // Add tile created
             groceryAddEntryKey.currentState?.animController.forward();
             if (!widget.isExpanded) {
-              context.read<GroceryBloc>().add(ToggleGroceryCategory(widget.categoryName));
+              context
+                  .read<GroceryBloc>()
+                  .add(ToggleGroceryCategory(widget.categoryName));
             }
             return true;
-          } else if (previous == widget.categoryName && (current != widget.categoryName || current.isEmpty)) {
+          } else if (previous == widget.categoryName &&
+              (current != widget.categoryName || current.isEmpty)) {
             // Add tile removed
             groceryAddEntryKey.currentState?.animController.reverse();
             return true;
@@ -67,11 +77,15 @@ class _GroceryCategoryBoxState extends State<GroceryCategoryBox> with TickerProv
             return !widget.categoryItems.contains(itemMap.data.values.first[0]);
           },
           onAcceptWithDetails: (itemMap) {
-            context.read<GroceryBloc>().add(UpdateIngredientsCategory(itemMap.data, widget.categoryName, false));
+            context.read<GroceryBloc>().add(UpdateIngredientsCategory(
+                items: itemMap.data,
+                newCategory: widget.categoryName,
+                onlyItemOrderChanged: false));
             for (String category in itemMap.data.keys) {
-              context
-                  .read<GroceryDraggingItemCubit>()
-                  .update(draggingIndex: null, hoveringIndex: null, originCategory: category);
+              context.read<GroceryDraggingItemCubit>().update(
+                  draggingIndex: null,
+                  hoveringIndex: null,
+                  originCategory: category);
             }
           },
           onLeave: (data) {
@@ -84,7 +98,8 @@ class _GroceryCategoryBoxState extends State<GroceryCategoryBox> with TickerProv
 
             height: (7.5.h +
                 (widget.isExpanded
-                    ? widget.categoryItems.length * 6.5.h + (state == widget.categoryName ? 10.h : 0)
+                    ? widget.categoryItems.length * 6.5.h +
+                        (state == widget.categoryName ? 10.h : 0)
                     : 0)),
             margin: EdgeInsets.symmetric(horizontal: 5.w),
             padding: EdgeInsets.all(4.w),
@@ -105,13 +120,25 @@ class _GroceryCategoryBoxState extends State<GroceryCategoryBox> with TickerProv
                     const Spacer(),
                     circularButton(
                         onTap: () {
-                          context.read<GroceryAddEntryCubit>().update(widget.categoryName);
+                          context.read<GroceryBloc>().add(
+                              UpdateIngredientsChecked(
+                                  null, null, widget.categoryName));
+                        },
+                        categoryColor: widget.categoryColor,
+                        icon: Icons.check_circle_outline),
+                    circularButton(
+                        onTap: () {
+                          context
+                              .read<GroceryAddEntryCubit>()
+                              .update(widget.categoryName);
                         },
                         categoryColor: widget.categoryColor,
                         icon: Icons.add),
                     circularButton(
                         onTap: () {
-                          context.read<GroceryBloc>().add(ToggleGroceryCategory(widget.categoryName));
+                          context
+                              .read<GroceryBloc>()
+                              .add(ToggleGroceryCategory(widget.categoryName));
                           if (state == widget.categoryName) {
                             context.read<GroceryAddEntryCubit>().update("");
                           }
@@ -134,14 +161,18 @@ class _GroceryCategoryBoxState extends State<GroceryCategoryBox> with TickerProv
                         List<GroceryItem> tempList = widget.categoryItems;
                         tempList.remove(item);
                         tempList.insert(i, item);
-                        context
-                            .read<GroceryBloc>()
-                            .add(UpdateIngredientsCategory({widget.categoryName: tempList}, widget.categoryName, true));
+                        context.read<GroceryBloc>().add(
+                            UpdateIngredientsCategory(
+                                items: {widget.categoryName: tempList},
+                                newCategory: widget.categoryName,
+                                onlyItemOrderChanged: true));
                       },
                     )
                 ]),
                 AddEntryStateless(
-                    isAdding: state == widget.categoryName, addKey: groceryAddEntryKey, name: widget.categoryName)
+                    isAdding: state == widget.categoryName,
+                    addKey: groceryAddEntryKey,
+                    name: widget.categoryName)
                 // state == widget.categoryName
                 //     ? GroceryAddEntry(
                 //         key: groceryAddEntryKey,
@@ -161,7 +192,11 @@ class AddEntryStateless extends StatelessWidget {
   final bool isAdding;
   final Key addKey;
   final String name;
-  const AddEntryStateless({super.key, required this.isAdding, required this.addKey, required this.name});
+  const AddEntryStateless(
+      {super.key,
+      required this.isAdding,
+      required this.addKey,
+      required this.name});
 
   @override
   Widget build(BuildContext context) {
