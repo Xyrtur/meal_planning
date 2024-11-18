@@ -18,7 +18,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -34,13 +35,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             screenFunction: () async {
               // Sentry code to get emailed exceptions
               try {
-                print("Building splash screen");
                 context.read<HiveRepository>().cacheInitialData();
                 return RepositoryProvider.value(
                   value: context.read<HiveRepository>(),
                   child: MultiBlocProvider(providers: [
                     BlocProvider<SettingsBloc>(
-                      create: (_) => SettingsBloc(context.read<HiveRepository>()),
+                      create: (_) =>
+                          SettingsBloc(context.read<HiveRepository>()),
                     ),
                   ], child: LandingPageView()),
                 );

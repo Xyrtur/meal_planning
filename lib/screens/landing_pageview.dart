@@ -47,7 +47,6 @@ class _LandingPageViewState extends State<LandingPageView> {
 
   @override
   Widget build(BuildContext context) {
-    print("Building landing page");
     return ScrollConfiguration(
       behavior: MyBehavior(),
       child: Scaffold(
@@ -79,6 +78,9 @@ class _LandingPageViewState extends State<LandingPageView> {
                   ),
                   BlocProvider<GroceryScrollDraggingCubit>(
                     create: (_) => GroceryScrollDraggingCubit(),
+                  ),
+                  BlocProvider<GroceryCategoryHover>(
+                    create: (_) => GroceryCategoryHover(),
                   ),
                   BlocProvider.value(value: context.read<SettingsBloc>())
                 ], child: GroceryListPage()),

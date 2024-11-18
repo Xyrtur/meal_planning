@@ -17,7 +17,6 @@ class Centre {
     Color.fromARGB(255, 172, 216, 170),
     Color.fromARGB(255, 168, 247, 246),
     Color.fromARGB(255, 255, 217, 125),
-    Color.fromARGB(255, 193, 196, 255),
 
     // Second row
     Color.fromARGB(255, 86, 205, 132),
@@ -29,7 +28,6 @@ class Centre {
     Color.fromARGB(255, 193, 251, 164),
     Color.fromARGB(255, 251, 188, 207),
     Color.fromARGB(255, 255, 155, 133),
-    Color.fromARGB(255, 190, 225, 230),
   ];
 
   static final titleText = TextStyle(

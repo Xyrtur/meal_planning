@@ -59,7 +59,7 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
               }
             }
           }),
-          builder: (unUsedContext, groceryState) => Stack(
+          builder: (_, groceryState) => Stack(
                 children: [
                   ReorderableListView(
                     scrollController: scrollController,
@@ -71,6 +71,8 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
                             BlocProvider.value(
                                 value:
                                     context.read<GroceryDraggingItemCubit>()),
+                            BlocProvider.value(
+                                value: context.read<GroceryCategoryHover>()),
                             BlocProvider<GroceryAddEntryCubit>(
                               create: (_) => GroceryAddEntryCubit(),
                             ),
@@ -91,12 +93,13 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
                       if (oldIndex < newIndex) {
                         newIndex -= 1;
                       }
-                      final String category =
-                          categoryOrderState.removeAt(oldIndex);
-                      categoryOrderState.insert(newIndex, category);
+                      List<String> tempList = List.from(categoryOrderState);
+                      final String category = tempList.removeAt(oldIndex);
+                      tempList.insert(newIndex, category);
+
                       context
                           .read<GroceryCategoryOrderCubit>()
-                          .update(categoryOrderState);
+                          .update(tempList);
                     },
                   ),
                   isDragging && scrollController.offset != 0
@@ -160,10 +163,20 @@ class _ClearButtonsState extends State<ClearButtons> {
     return GestureDetector(
         onTap: onTap,
         child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-                color: const Color.fromARGB(255, 248, 172, 197), width: 1.w),
-            borderRadius: const BorderRadius.all(Radius.circular(40)),
+          margin: EdgeInsets.only(left: 4.w),
+          padding: EdgeInsets.all(2.w),
+          decoration: ShapeDecoration(
+            shadows: [
+              BoxShadow(
+                color: Centre.shadowbgColor,
+                spreadRadius: 2,
+                blurRadius: 7,
+                offset: const Offset(0, 3),
+              ),
+            ],
+            color: Centre.bgColor,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10))),
           ),
           child: type == ClearButton.clearAll
               ? const Text("clear all")
@@ -225,21 +238,18 @@ class GroceryListPage extends StatelessWidget {
                 context.read<ToggleGroceryDeletingCubit>().toggle();
               },
               isSelected: [!toggleState, toggleState], // list, in delete mode
-              selectedColor: const Color.fromARGB(255, 237, 107, 151),
-              color: Centre.primaryColor,
-              fillColor: Centre.bgColor,
+              selectedColor: Colors.white,
+              color: Colors.black,
+              fillColor: Colors.black,
               borderRadius: const BorderRadius.all(Radius.circular(40)),
-              borderWidth: 1.w,
-              borderColor: Colors.blue,
-              selectedBorderColor: Colors.blue,
               children: <Widget>[
                 Icon(
                   Icons.checklist_rounded,
-                  size: 3.h,
+                  size: 2.5.h,
                 ),
                 Icon(
                   Icons.delete,
-                  size: 3.h,
+                  size: 2.5.h,
                 ),
               ],
             ));
@@ -247,23 +257,33 @@ class GroceryListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print("Building Grocery list page");
-
     return SafeArea(
         child: Scaffold(
             backgroundColor: Centre.bgColor,
             body: Column(
               children: [
-                Row(
-                  children: [
-                    Text(
-                      "Grocery List",
-                      style: Centre.titleText,
-                    ),
-                    Column(
-                      children: [deleteToggle(context), const ClearButtons()],
-                    )
-                  ],
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                  child: Row(
+                    children: [
+                      Text(
+                        "Grocery List",
+                        style: Centre.titleText,
+                      ),
+                      Spacer(),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          deleteToggle(context),
+                          SizedBox(
+                            height: 1.h,
+                          ),
+                          const ClearButtons()
+                        ],
+                      )
+                    ],
+                  ),
                 ),
                 CategoryBoxes()
               ],

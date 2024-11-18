@@ -12,6 +12,7 @@ import 'package:sizer/sizer.dart';
 // ignore: must_be_immutable
 class SettingsPage extends StatelessWidget {
   SettingsPage({super.key});
+  final focusNode = FocusNode();
 
   final formKey = GlobalKey<FormState>();
   TextEditingController editingController = TextEditingController(text: "");
@@ -27,22 +28,24 @@ class SettingsPage extends StatelessWidget {
         Row(
           children: [
             BlocProvider<SettingsAddColorCubit>(
-                create: (context) => SettingsAddColorCubit(color),
+                create: (context) => SettingsAddColorCubit(null),
                 child: ChooseColorBtn(
                   type: type,
+                  color: color,
                   name: name,
                 )),
             editingName == null || editingName != name
                 ? GestureDetector(
                     onTap: () {
-                      context.read<SettingsEditingTextCubit>().editing(
-                          type: type.toString().split('.')[1], name: name);
+                      context
+                          .read<SettingsEditingTextCubit>()
+                          .editing(type: type.name, name: name);
                     },
                     child: Text(name))
                 : CategoryTextField(
                     existingCategories: categories.keys.toList(),
                     formKey: formKey,
-                    controller: editingController,
+                    controller: editingController..text = name,
                   ),
             const Spacer(),
             editingName == null || editingName != name
@@ -93,7 +96,7 @@ class SettingsPage extends StatelessWidget {
     });
     return [
       Text(
-        "Change ${type.toString().split('.')[1]} categories",
+        "Change ${type.name} categories",
         style: Centre.listText,
       ),
       ...categoryList,
@@ -129,25 +132,22 @@ class SettingsPage extends StatelessWidget {
                     context: context,
                     type: CategoryType.grocery,
                     categories: settingsState.groceryCategoriesMap,
-                    editingName: editingState[0] ==
-                            CategoryType.grocery.toString().split('.')[1]
-                        ? editingState[0]
+                    editingName: editingState[0] == CategoryType.grocery.name
+                        ? editingState[1]
                         : null),
                 ...changeArea(
                     context: context,
                     type: CategoryType.recipe,
                     categories: settingsState.recipeCategoriesMap,
-                    editingName: editingState[0] ==
-                            CategoryType.recipe.toString().split('.')[1]
-                        ? editingState[0]
+                    editingName: editingState[0] == CategoryType.recipe.name
+                        ? editingState[1]
                         : null),
                 ...changeArea(
                     context: context,
                     type: CategoryType.generic,
                     categories: settingsState.genericCategoriesMap,
-                    editingName: editingState[0] ==
-                            CategoryType.generic.toString().split('.')[1]
-                        ? editingState[0]
+                    editingName: editingState[0] == CategoryType.generic.name
+                        ? editingState[1]
                         : null),
                 GestureDetector(
                     onTap: () => Navigator.pop(context),
@@ -187,43 +187,49 @@ class SettingsPage extends StatelessWidget {
 
 class ChooseColorBtn extends StatelessWidget {
   final CategoryType type;
+  final int? color;
   final String name;
-  const ChooseColorBtn({super.key, required this.type, required this.name});
+  const ChooseColorBtn(
+      {super.key, required this.type, required this.name, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-        onTap: () {
-          showAlignedDialog(
-              followerAnchor: Alignment.topLeft,
-              targetAnchor: Alignment.bottomLeft,
-              avoidOverflow: true,
-              barrierColor: Colors.transparent,
-              context: context,
-              builder: (BuildContext dialogContext) => GestureDetector(
-                  onTap: () {
-                    context.read<SettingsBloc>().add(SettingsUpdateCategory(
-                        type,
-                        name,
-                        null,
-                        context.read<SettingsAddColorCubit>().state));
-                    Navigator.pop(dialogContext);
-                  },
-                  child: const Scaffold(
-                      backgroundColor: Colors.transparent,
-                      body: ChooseColorDialog())));
-        },
-        child: BlocBuilder<SettingsAddColorCubit, int?>(
-            builder: (context, chosenColor) => Container(
-                  margin: EdgeInsets.only(right: 2.w),
-                  width: 6.w,
-                  height: 6.w,
-                  decoration: BoxDecoration(
-                      color: Color(chosenColor!),
-                      border: Border.all(color: Colors.white, width: 1.5),
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(40))),
-                )));
+    return BlocBuilder<SettingsAddColorCubit, int?>(builder: (_, chosenColor) {
+      return GestureDetector(
+          onTap: () {
+            showAlignedDialog(
+                followerAnchor: Alignment.topLeft,
+                targetAnchor: Alignment.bottomLeft,
+                barrierColor: Colors.transparent,
+                offset: Offset(1.w, 0),
+                context: context,
+                builder: (BuildContext dialogContext) => GestureDetector(
+                    onTap: () {
+                      if (context.read<SettingsAddColorCubit>().state != null) {
+                        context.read<SettingsBloc>().add(SettingsUpdateCategory(
+                            type,
+                            name,
+                            null,
+                            context.read<SettingsAddColorCubit>().state));
+                      }
+                      Navigator.pop(dialogContext);
+                    },
+                    child: Scaffold(
+                        backgroundColor: Colors.transparent,
+                        body: BlocProvider<SettingsAddColorCubit>.value(
+                            value: context.read<SettingsAddColorCubit>(),
+                            child: const ChooseColorDialog()))));
+          },
+          child: Container(
+            margin: EdgeInsets.only(right: 2.w),
+            width: 6.w,
+            height: 6.w,
+            decoration: BoxDecoration(
+                color: Color(chosenColor ?? color!),
+                border: Border.all(color: Colors.white, width: 1.5),
+                borderRadius: const BorderRadius.all(Radius.circular(40))),
+          ));
+    });
   }
 }
 
@@ -231,17 +237,19 @@ class CategoryTextField extends StatefulWidget {
   final List<String> existingCategories;
   final TextEditingController controller;
   final GlobalKey formKey;
+  // final FocusNode focusNode;
   const CategoryTextField(
       {super.key,
       required this.controller,
       required this.formKey,
+      // required this.focusNode,
       required this.existingCategories});
 
   @override
-  State<CategoryTextField> createState() => _MyWidgetState();
+  State<CategoryTextField> createState() => _CategoryTextFieldState();
 }
 
-class _MyWidgetState extends State<CategoryTextField> {
+class _CategoryTextFieldState extends State<CategoryTextField> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -249,6 +257,8 @@ class _MyWidgetState extends State<CategoryTextField> {
       child: Form(
         key: widget.formKey,
         child: TextFormField(
+          autofocus: true,
+          // focusNode: widget.focusNode,
           controller: widget.controller,
           autovalidateMode: AutovalidateMode.disabled,
           validator: (text) {
@@ -298,39 +308,35 @@ class _AddCategoryTextFieldState extends State<AddCategoryTextField> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        BlocBuilder<SettingsAddColorCubit, int?>(
-            builder: (unUsedContext, state) {
-          return Builder(builder: (context) {
-            return GestureDetector(
-                onTap: () {
-                  showAlignedDialog(
-                      followerAnchor: Alignment.topLeft,
-                      targetAnchor: Alignment.bottomLeft,
-                      barrierColor: Colors.transparent,
-                      offset: Offset(6.w, 6.w),
-                      context: context,
-                      builder: (BuildContext dialogContext) => GestureDetector(
-                            onTap: () => Navigator.pop(dialogContext),
-                            child: Scaffold(
-                              backgroundColor: Colors.transparent,
-                              body: BlocProvider<SettingsAddColorCubit>.value(
-                                value: context.read<SettingsAddColorCubit>(),
-                                child: const ChooseColorDialog(),
-                              ),
+        BlocBuilder<SettingsAddColorCubit, int?>(builder: (_, state) {
+          return GestureDetector(
+              onTap: () {
+                showAlignedDialog(
+                    followerAnchor: Alignment.topLeft,
+                    targetAnchor: Alignment.bottomLeft,
+                    barrierColor: Colors.transparent,
+                    offset: Offset(1.w, 0),
+                    context: context,
+                    builder: (BuildContext dialogContext) => GestureDetector(
+                          onTap: () => Navigator.pop(dialogContext),
+                          child: Scaffold(
+                            backgroundColor: Colors.transparent,
+                            body: BlocProvider<SettingsAddColorCubit>.value(
+                              value: context.read<SettingsAddColorCubit>(),
+                              child: const ChooseColorDialog(),
                             ),
-                          ));
-                },
-                child: Container(
-                  margin: EdgeInsets.only(right: 2.w),
-                  width: 6.w,
-                  height: 6.w,
-                  decoration: BoxDecoration(
-                      color: Color(state ?? Centre.bgColor.value),
-                      border: Border.all(color: Colors.white, width: 1.5),
-                      borderRadius:
-                          const BorderRadius.all(Radius.circular(40))),
-                ));
-          });
+                          ),
+                        ));
+              },
+              child: Container(
+                margin: EdgeInsets.only(right: 2.w),
+                width: 6.w,
+                height: 6.w,
+                decoration: BoxDecoration(
+                    color: Color(state ?? Centre.bgColor.value),
+                    border: Border.all(color: Colors.white, width: 1.5),
+                    borderRadius: const BorderRadius.all(Radius.circular(40))),
+              ));
         }),
         SizedBox(
           width: 60.w,
@@ -393,6 +399,7 @@ class ChooseColorDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget colourBtn(int i) {
       return GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onTap: () {
           context
               .read<SettingsAddColorCubit>()
@@ -401,13 +408,13 @@ class ChooseColorDialog extends StatelessWidget {
         child: BlocBuilder<SettingsAddColorCubit, int?>(
             builder: (context, chosenColor) {
           return Container(
-            margin: EdgeInsets.only(top: 1.3.h),
-            width: 6.w,
-            height: 6.w,
+            margin: EdgeInsets.symmetric(vertical: 0.8.h, horizontal: 2.w),
+            width: 6.5.w,
+            height: 6.5.w,
             decoration: BoxDecoration(
                 color: Centre.colors[i],
                 border: Border.all(color: Colors.white, width: 1.5),
-                borderRadius: const BorderRadius.all(Radius.circular(40))),
+                borderRadius: const BorderRadius.all(Radius.circular(8))),
             child: chosenColor == Centre.colors[i].value
                 ? Icon(
                     Icons.check,
@@ -420,25 +427,30 @@ class ChooseColorDialog extends StatelessWidget {
       );
     }
 
-    return AlertDialog(
-        contentPadding: EdgeInsets.all(2.w),
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(20))),
-        backgroundColor: Centre.shadowbgColor,
-        elevation: 0,
-        content: SizedBox(
-            height: 18.h,
-            width: 50.w,
-            child: Column(
-              children: [
-                for (int i = 0; i < 4; i++)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      for (int j = 0; j < 5; j++) colourBtn(i * 5 + j)
-                    ],
-                  )
-              ],
-            )));
+    return GestureDetector(
+      onTap: () {},
+      child: Material(
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20))),
+          color: Centre.shadowbgColor,
+          elevation: 0,
+          child: SizedBox(
+              height: 15.8.h,
+              width: 69.w,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 3.w),
+                child: Column(
+                  children: [
+                    for (int i = 0; i < 3; i++)
+                      Row(
+                        // mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          for (int j = 0; j < 6; j++) colourBtn(i * 6 + j)
+                        ],
+                      )
+                  ],
+                ),
+              ))),
+    );
   }
 }

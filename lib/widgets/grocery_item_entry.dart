@@ -4,6 +4,7 @@ import 'package:meal_planning/blocs/cubits.dart';
 import 'package:meal_planning/blocs/grocery_bloc.dart';
 import 'package:meal_planning/models/grocery_item.dart';
 import 'package:meal_planning/utils/centre.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:sizer/sizer.dart';
 
 class GroceryAddEntry extends StatefulWidget {
@@ -17,7 +18,7 @@ class GroceryAddEntry extends StatefulWidget {
 class GroceryAddEntryState extends State<GroceryAddEntry>
     with TickerProviderStateMixin {
   late final AnimationController animController;
-  static final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TextEditingController controller = TextEditingController();
   late Animation<double> animation;
 
@@ -65,8 +66,9 @@ class GroceryAddEntryState extends State<GroceryAddEntry>
             ),
         child: GestureDetector(
             onLongPress: () {},
+            behavior: HitTestBehavior.translucent,
             child: SizedBox(
-                height: 9.h,
+                height: 5.h,
                 width: 90.w,
                 child: Row(children: [
                   GestureDetector(
@@ -74,7 +76,6 @@ class GroceryAddEntryState extends State<GroceryAddEntry>
                       context.read<GroceryAddEntryCubit>().update("");
                     },
                     child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 2.w),
                       padding: EdgeInsets.all(1.5.w),
                       child: Icon(
                         Icons.delete,
@@ -84,6 +85,7 @@ class GroceryAddEntryState extends State<GroceryAddEntry>
                     ),
                   ),
                   GestureDetector(
+                    behavior: HitTestBehavior.translucent,
                     onTap: () {
                       if (formKey.currentState!.validate()) {
                         context.read<GroceryBloc>().add(AddIngredient(
@@ -94,7 +96,7 @@ class GroceryAddEntryState extends State<GroceryAddEntry>
                       }
                     },
                     child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 2.w),
+                      margin: EdgeInsets.only(left: 1.w, right: 2.w),
                       padding: EdgeInsets.all(1.5.w),
                       child: Icon(
                         Icons.check,
@@ -136,10 +138,15 @@ Widget draggableItemEntry(
     required int index,
     required bool inDeleteMode,
     required BuildContext context,
+    required String hoveredCategory,
     required String category,
     required Function(GroceryItem item) onReorder}) {
-  return LongPressDraggable<GroceryItem>(
-    data: item,
+  return LongPressDraggable<Map<String, List<GroceryItem>>>(
+    hitTestBehavior: HitTestBehavior.translucent,
+    delay: const Duration(milliseconds: 100),
+    data: {
+      category: [item]
+    },
     onDragStarted: () {
       context.read<GroceryDraggingItemCubit>().update(
           draggingIndex: index, hoveringIndex: index, originCategory: category);
@@ -153,6 +160,8 @@ Widget draggableItemEntry(
           draggingIndex: null, hoveringIndex: null, originCategory: category);
     },
     feedback: Material(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+      color: const Color.fromARGB(175, 143, 177, 236),
       child: itemEntry(
           draggingIndex: draggingIndex,
           item: item,
@@ -162,25 +171,25 @@ Widget draggableItemEntry(
           category: category,
           isFeedback: true),
     ),
-    child: DragTarget<GroceryItem>(
+    child: DragTarget<Map<String, List<GroceryItem>>>(
       onWillAcceptWithDetails: (data) {
-        if (data.data != item) {
+        if (data.data.keys.first != category) {
           context.read<GroceryDraggingItemCubit>().update(
               draggingIndex: draggingIndex,
-              hoveringIndex: index,
+              hoveringIndex: null,
               originCategory: category);
-          return true;
+          return false;
         }
         context.read<GroceryDraggingItemCubit>().update(
             draggingIndex: draggingIndex,
             hoveringIndex: index,
             originCategory: category);
-        return false;
+        return data.data.values.first.first != item;
       },
       onAcceptWithDetails: (data) {
         context.read<GroceryDraggingItemCubit>().update(
             draggingIndex: null, hoveringIndex: null, originCategory: category);
-        onReorder(data.data);
+        onReorder(data.data.values.first.first);
       },
       onLeave: (data) {
         context.read<GroceryDraggingItemCubit>().update(
@@ -201,8 +210,8 @@ Widget draggableItemEntry(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
                 transform: hoveringIndex == null && draggingIndex != null
-                    ? (index > draggingIndex
-                        ? Matrix4.translationValues(0, -(8.h), 0)
+                    ? (index > draggingIndex && hoveredCategory.isNotEmpty
+                        ? Matrix4.translationValues(0, -5.h, 0)
                         : Matrix4.translationValues(0, 0, 0))
                     : hoveringIndex != null && (draggingIndex! > hoveringIndex)
                         ? Matrix4.translationValues(
@@ -210,7 +219,7 @@ Widget draggableItemEntry(
                             (index >= hoveringIndex)
                                 ? ((index >= draggingIndex))
                                     ? 0
-                                    : 8.h
+                                    : 5.h
                                 : 0,
                             0)
                         : (hoveringIndex != null &&
@@ -220,7 +229,7 @@ Widget draggableItemEntry(
                                 (index <= hoveringIndex)
                                     ? ((index <= draggingIndex))
                                         ? 0
-                                        : -(8.h)
+                                        : -(5.h)
                                     : 0,
                                 0)
                             : Matrix4.translationValues(0, 0, 0),
@@ -247,42 +256,53 @@ Widget itemEntry(
     bool isFeedback = false}) {
   return SizedBox(
     key: ValueKey(item),
-    height: 6.h,
+    height: 5.h,
+    width: 88.w,
     child: draggingIndex == index
         ? null
-        : Row(
-            children: [
-              GestureDetector(
-                  onTap: () {
-                    if (inDeleteMode) {
-                      context.read<GroceryBloc>().add(DeleteIngredients(items: {
-                            category: [item]
-                          }, clearAll: false));
-                    } else {
-                      context.read<GroceryBloc>().add(UpdateIngredientsChecked(
-                          !item.isChecked, index, category));
-                    }
-                  },
-                  child: inDeleteMode
-                      ? const Icon(Icons.delete)
-                      : item.isChecked
-                          ? const Icon(Icons.check_box_rounded)
-                          : const Icon(Icons.check_box_outline_blank)),
-              GestureDetector(
-                onTap: () {
-                  if (!inDeleteMode) {
-                    context.read<GroceryBloc>().add(UpdateIngredientsChecked(
-                        !item.isChecked, index, category));
-                  }
-                },
-                child: Text(
-                  item.name,
-                  style: Centre.listText.copyWith(
-                      decoration:
-                          item.isChecked ? TextDecoration.lineThrough : null),
+        : Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4.w),
+            child: Row(
+              children: [
+                GestureDetector(
+                    onTap: () {
+                      if (inDeleteMode) {
+                        context
+                            .read<GroceryBloc>()
+                            .add(DeleteIngredients(items: {
+                              category: [item]
+                            }, clearAll: false));
+                      } else {
+                        context.read<GroceryBloc>().add(
+                            UpdateIngredientsChecked(
+                                !item.isChecked, index, category));
+                      }
+                    },
+                    child: inDeleteMode
+                        ? const Icon(Icons.delete)
+                        : item.isChecked
+                            ? const Icon(Icons.check_box_rounded)
+                            : const Icon(Icons.check_box_outline_blank)),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      if (!inDeleteMode) {
+                        context.read<GroceryBloc>().add(
+                            UpdateIngredientsChecked(
+                                !item.isChecked, index, category));
+                      }
+                    },
+                    child: Text(
+                      item.name,
+                      style: Centre.listText.copyWith(
+                          decoration: item.isChecked
+                              ? TextDecoration.lineThrough
+                              : null),
+                    ),
+                  ),
                 ),
-              )
-            ],
+              ],
+            ),
           ),
   );
 }

@@ -68,8 +68,7 @@ class PageNavigationBar extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context)
                         .push(MaterialPageRoute(
-                            builder: (unUsedContext) =>
-                                MultiBlocProvider(providers: [
+                            builder: (_) => MultiBlocProvider(providers: [
                                   BlocProvider.value(
                                       value: context.read<SettingsBloc>()),
                                   BlocProvider(
