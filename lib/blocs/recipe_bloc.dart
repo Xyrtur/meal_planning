@@ -10,6 +10,26 @@ sealed class RecipeEvent extends Equatable {
   List<Object> get props => [];
 }
 
+class AddRecipe extends RecipeEvent {
+  final Recipe recipe;
+  const AddRecipe(this.recipe);
+}
+
+class DeleteRecipe extends RecipeEvent {
+  final Recipe recipe;
+  const DeleteRecipe(this.recipe);
+}
+
+class UpdateRecipe extends RecipeEvent {
+  final Recipe recipe;
+  const UpdateRecipe(this.recipe);
+}
+
+class EditRecipeClicked extends RecipeEvent {
+  final Recipe recipe;
+  const EditRecipeClicked(this.recipe);
+}
+
 sealed class RecipeState extends Equatable {
   const RecipeState();
 
@@ -17,11 +37,39 @@ sealed class RecipeState extends Equatable {
   List<Object> get props => [];
 }
 
-class RecipeInitial extends RecipeState {
-  const RecipeInitial();
+class ViewingRecipe extends RecipeState {
+  final Recipe recipe;
+  const ViewingRecipe(this.recipe);
+}
+
+class EditingRecipe extends RecipeState {
+  final Recipe? recipe;
+  const EditingRecipe(this.recipe);
 }
 
 class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
   final HiveRepository hive;
-  RecipeBloc(this.hive) : super(RecipeInitial()) {}
+  final Recipe? recipe;
+  RecipeBloc(this.hive, this.recipe)
+      : super(() {
+          return recipe == null
+              ? const EditingRecipe(null)
+              : ViewingRecipe(recipe);
+        }()) {
+    on<AddRecipe>((event, emit) {
+      hive.addRecipe();
+      emit(ViewingRecipe(event.recipe));
+    });
+    on<DeleteRecipe>((event, emit) {
+      hive.deleteRecipe();
+      emit(ViewingRecipe(event.recipe));
+    });
+    on<UpdateRecipe>((event, emit) {
+      hive.updateRecipe();
+      emit(ViewingRecipe(event.recipe));
+    });
+    on<EditRecipeClicked>((event, emit) {
+      emit(EditingRecipe(event.recipe));
+    });
+  }
 }

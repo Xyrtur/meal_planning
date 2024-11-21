@@ -61,6 +61,25 @@ class HiveRepository {
         groceryItemsMap[key] = value.whereType<GroceryItem>().toList();
       }
     });
+    recipeCategoriesMap.addEntries(
+        {"Veggie": Colors.green.value, "Meat": Colors.red.value}.entries);
+    recipeList.addAll([
+      Recipe(
+          title: "Chicken Slop",
+          ingredients: "pee\npoo\nmao",
+          instructions: "meep\nmoop",
+          categories: ["Meat"]),
+      Recipe(
+          title: "Beet mix",
+          ingredients: "pee\npoo\nmao",
+          instructions: "meep\nmoop",
+          categories: ["Veggie"]),
+      Recipe(
+          title: "Salad",
+          ingredients: "pee\npoo\nmao",
+          instructions: "meep\nmoop",
+          categories: ["Veggie"])
+    ]);
 
     currentWeekRanges =
         (mealPlanningBox.get('currentWeekRanges') ?? []).cast<DateTime>();
@@ -80,7 +99,9 @@ class HiveRepository {
     // Cache recipe information to speed up searching and filtering
     for (Recipe recipe in recipeList) {
       recipeTitlestoRecipeMap[recipe.title] = recipe;
-      recipeCategoriesToRecipeTitlesMap[recipe.category]!.add(recipe.title);
+      for (String category in recipe.categories) {
+        recipeCategoriesToRecipeTitlesMap[category]!.add(recipe.title);
+      }
     }
 
     // Set current week ranges / correct if needed
@@ -96,16 +117,16 @@ class HiveRepository {
       DateTime startOfRanges =
           DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
       currentWeekRanges.add(startOfRanges);
-      currentWeekRanges.add(startOfRanges.add(Duration(days: 6)));
+      currentWeekRanges.add(startOfRanges.add(const Duration(days: 6)));
 
-      currentWeekRanges.add(startOfRanges.add(Duration(days: 7)));
-      currentWeekRanges.add(startOfRanges.add(Duration(days: 13)));
+      currentWeekRanges.add(startOfRanges.add(const Duration(days: 7)));
+      currentWeekRanges.add(startOfRanges.add(const Duration(days: 13)));
 
       weeklyMealsList.addAll(List.filled(5 * 14, ""));
 
       if (DateTime.now().weekday > 5) {
-        currentWeekRanges.add(startOfRanges.add(Duration(days: 14)));
-        currentWeekRanges.add(startOfRanges.add(Duration(days: 20)));
+        currentWeekRanges.add(startOfRanges.add(const Duration(days: 14)));
+        currentWeekRanges.add(startOfRanges.add(const Duration(days: 20)));
 
         weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
@@ -128,14 +149,18 @@ class HiveRepository {
 
       // If only one week is left, add a second
       if (currentWeekRanges.length == 2) {
-        currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 7)));
-        currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 13)));
+        currentWeekRanges
+            .add(currentWeekRanges[0].add(const Duration(days: 7)));
+        currentWeekRanges
+            .add(currentWeekRanges[0].add(const Duration(days: 13)));
         weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
       // Add a third week only if nearing the end of the first week
       if (DateTime.now().weekday >= 5 && currentWeekRanges.length == 4) {
-        currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 14)));
-        currentWeekRanges.add(currentWeekRanges[0].add(Duration(days: 20)));
+        currentWeekRanges
+            .add(currentWeekRanges[0].add(const Duration(days: 14)));
+        currentWeekRanges
+            .add(currentWeekRanges[0].add(const Duration(days: 20)));
         weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
     }
@@ -184,13 +209,24 @@ class HiveRepository {
       case CategoryType.recipe:
         recipeCategoriesMap.remove(categoryName);
         if (recipeCategoriesToRecipeTitlesMap[categoryName]!.isNotEmpty) {
-          recipeCategoriesToRecipeTitlesMap.update(
-              "Other",
-              (list) => list
-                ..addAll(recipeCategoriesToRecipeTitlesMap[categoryName]!),
-              ifAbsent: () {
+          recipeCategoriesToRecipeTitlesMap.update("Other", (list) {
+            for (String recipeName
+                in recipeCategoriesToRecipeTitlesMap[categoryName]!) {
+              if (recipeTitlestoRecipeMap[recipeName]!.categories.length == 1) {
+                list.add(recipeName);
+              }
+            }
+            return list;
+          }, ifAbsent: () {
             recipeCategoriesMap["Other"] = Colors.blueGrey.value;
-            return recipeCategoriesToRecipeTitlesMap[categoryName]!;
+            List<String> list = [];
+            for (String recipeName
+                in recipeCategoriesToRecipeTitlesMap[categoryName]!) {
+              if (recipeTitlestoRecipeMap[recipeName]!.categories.length == 1) {
+                list.add(recipeName);
+              }
+            }
+            return list;
           });
         }
         recipeCategoriesToRecipeTitlesMap.remove(categoryName);
@@ -231,6 +267,7 @@ class HiveRepository {
 
       case CategoryType.recipe:
         recipeCategoriesMap[categoryName] = color;
+        recipeCategoriesToRecipeTitlesMap[categoryName] = [];
         mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
         break;
 
@@ -271,6 +308,11 @@ class HiveRepository {
           List<String> items =
               recipeCategoriesToRecipeTitlesMap.remove(oldName)!;
           recipeCategoriesToRecipeTitlesMap[newName] = items;
+          for (String recipeTitle in items) {
+            recipeTitlestoRecipeMap[recipeTitle]!.categories.remove(oldName);
+            recipeTitlestoRecipeMap[recipeTitle]!.categories.add(newName);
+            recipeTitlestoRecipeMap[recipeTitle]!.save();
+          }
         }
         mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
         break;

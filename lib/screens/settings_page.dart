@@ -171,7 +171,7 @@ class SettingsPage extends StatelessWidget {
                       height: 6.h,
                       child: Center(
                         child: Text(
-                          "Finish and apply changes",
+                          "Finish",
                           style: Centre.semiTitleText,
                         ),
                       ),

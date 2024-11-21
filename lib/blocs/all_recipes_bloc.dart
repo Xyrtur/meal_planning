@@ -1,11 +1,21 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meal_planning/models/recipe.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
 
 sealed class AllRecipesEvent extends Equatable {
   const AllRecipesEvent();
   @override
   List<Object> get props => [];
+}
+
+class CategoryUpdated extends AllRecipesEvent {
+  const CategoryUpdated();
+}
+
+class RecipeClicked extends AllRecipesEvent {
+  final String recipeName;
+  const RecipeClicked(this.recipeName);
 }
 
 class FilterToggle extends AllRecipesEvent {
@@ -24,54 +34,86 @@ class SearchClicked extends AllRecipesEvent {
   List<Object> get props => [searchString];
 }
 
-sealed class AllRecipesState extends Equatable {
-  final List<String> filteredRecipeList;
-  final List<String> toggledCategories;
-  const AllRecipesState(this.filteredRecipeList, this.toggledCategories);
+sealed class AllRecipesState {
+  // Contains the recipe title and its corresponding category color
+  final Map<String, List<int>> filteredRecipeMap;
 
-  @override
-  List<Object> get props => [filteredRecipeList, toggledCategories];
+  // Contains all possible recipe categories and their corresponding colors, null if not toggled
+  final Map<String, int?> toggledCategories;
+
+  const AllRecipesState(this.filteredRecipeMap, this.toggledCategories);
+
+  List<Object> get props => [filteredRecipeMap, toggledCategories];
 }
 
 class AllRecipesInitial extends AllRecipesState {
-  const AllRecipesInitial(super.filteredRecipeList, super.toggledCategories);
+  const AllRecipesInitial(super.filteredRecipeMap, super.toggledCategories);
 }
 
 class FiltersChanged extends AllRecipesState {
-  const FiltersChanged(super.filteredRecipeList, super.toggledCategories);
+  const FiltersChanged(super.filteredRecipeMap, super.toggledCategories);
 }
 
 class AllRecipesListUpdated extends AllRecipesState {
-  const AllRecipesListUpdated(
-      super.filteredRecipeList, super.toggledCategories);
+  const AllRecipesListUpdated(super.filteredRecipeMap, super.toggledCategories);
+}
+
+class OpeningRecipePage extends AllRecipesState {
+  final Recipe recipe;
+  const OpeningRecipePage(
+      super.filteredRecipeMap, super.toggledCategories, this.recipe);
 }
 
 class AllRecipesBloc extends Bloc<AllRecipesEvent, AllRecipesState> {
   final HiveRepository hive;
-  List<String> filteredRecipeList = [];
-  List<String> toggledCategories = [];
+  Map<String, List<int>> filteredRecipes = {};
+  Map<String, int?> toggledCategories = {};
 
   AllRecipesBloc(this.hive)
       : super(AllRecipesInitial(
-            hive.recipeTitlestoRecipeMap.keys.toList()..sort(), [])) {
-    List<String> sortedAllRecipesList =
-        hive.recipeTitlestoRecipeMap.keys.toList()..sort();
+            <String, List<int>>{
+              for (String element in hive.recipeTitlestoRecipeMap.keys.toList())
+                element: [
+                  for (String category
+                      in hive.recipeTitlestoRecipeMap[element]!.categories)
+                    hive.recipeCategoriesMap[category]!
+                ]
+            },
+            Map.from(hive.recipeCategoriesMap)
+              ..updateAll((key, value) => value = null))) {
+    Map<String, List<int>> allRecipes = <String, List<int>>{
+      for (String element in hive.recipeTitlestoRecipeMap.keys.toList())
+        element: [
+          for (String category
+              in hive.recipeTitlestoRecipeMap[element]!.categories)
+            hive.recipeCategoriesMap[category]!
+        ]
+    };
+    toggledCategories = Map.from(hive.recipeCategoriesMap)
+      ..updateAll((key, value) => value = null);
+
     on<FilterToggle>((event, emit) {
-      if (!toggledCategories.remove(event.category)) {
-        toggledCategories.add(event.category);
-        filteredRecipeList
-            .addAll(hive.recipeCategoriesToRecipeTitlesMap[event.category]!);
+      if (toggledCategories[event.category] == null) {
+        toggledCategories[event.category] =
+            hive.recipeCategoriesMap[event.category]!;
+        filteredRecipes.addAll(<String, List<int>>{
+          for (String recipeTitle
+              in hive.recipeCategoriesToRecipeTitlesMap[event.category]!)
+            recipeTitle: [
+              for (String category
+                  in hive.recipeTitlestoRecipeMap[recipeTitle]!.categories)
+                hive.recipeCategoriesMap[category]!
+            ]
+        });
       } else {
-        for (int i = 0;
-            i < hive.recipeCategoriesToRecipeTitlesMap[event.category]!.length;
-            i++) {
-          filteredRecipeList.removeAt(i);
+        toggledCategories[event.category] = null;
+        for (String recipeTitle
+            in hive.recipeCategoriesToRecipeTitlesMap[event.category]!) {
+          filteredRecipes.remove(recipeTitle);
         }
       }
-
       emit(FiltersChanged(
-          filteredRecipeList.isEmpty ? sortedAllRecipesList : filteredRecipeList
-            ..sort(),
+          filteredRecipes.isEmpty ? allRecipes : filteredRecipes,
           toggledCategories));
     });
 
@@ -81,15 +123,30 @@ class AllRecipesBloc extends Bloc<AllRecipesEvent, AllRecipesState> {
           .map((word) => '(?=.*${RegExp.escape(word)})')
           .join());
       RegExp reg1 = RegExp("^$reg", caseSensitive: false);
-      List<String> prunedList =
-          filteredRecipeList.isEmpty ? sortedAllRecipesList : filteredRecipeList
-            ..sort();
-      for (int i = 0; i < prunedList.length; i++) {
-        if (!reg1.hasMatch(prunedList[i])) {
-          prunedList.removeAt(i);
+      Map<String, List<int>> prunedMap = filteredRecipes.isEmpty
+          ? Map.from(allRecipes)
+          : Map.from(filteredRecipes);
+      List<String> recipeTitlesToPrune = prunedMap.keys.toList();
+      for (int i = 0; i < recipeTitlesToPrune.length; i++) {
+        if (!reg1.hasMatch(recipeTitlesToPrune[i])) {
+          prunedMap.remove(recipeTitlesToPrune[i]);
         }
       }
-      emit(AllRecipesListUpdated(prunedList, toggledCategories));
+      emit(AllRecipesListUpdated(prunedMap, toggledCategories));
+    });
+
+    on<CategoryUpdated>((event, emit) {
+      for (String category in hive.recipeCategoriesMap.keys) {
+        toggledCategories.putIfAbsent(category, () => null);
+      }
+      emit(FiltersChanged(
+          filteredRecipes.isEmpty ? allRecipes : filteredRecipes,
+          toggledCategories));
+    });
+
+    on<RecipeClicked>((event, emit) {
+      Recipe recipe = hive.recipeTitlestoRecipeMap[event.recipeName]!;
+      emit(OpeningRecipePage(filteredRecipes, toggledCategories, recipe));
     });
   }
 }

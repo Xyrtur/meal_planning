@@ -61,7 +61,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                     create: (_) =>
                         WeeklyPlanningBloc(context.read<HiveRepository>()),
                   ),
-                ], child: WeeklyPlanningPage()),
+                ], child: const WeeklyPlanningPage()),
                 MultiBlocProvider(providers: [
                   BlocProvider<GroceryBloc>(
                     create: (_) => GroceryBloc(context.read<HiveRepository>()),
@@ -83,13 +83,13 @@ class _LandingPageViewState extends State<LandingPageView> {
                     create: (_) => GroceryCategoryHover(),
                   ),
                   BlocProvider.value(value: context.read<SettingsBloc>())
-                ], child: GroceryListPage()),
+                ], child: const GroceryListPage()),
                 MultiBlocProvider(providers: [
                   BlocProvider<AllRecipesBloc>(
                     create: (_) =>
                         AllRecipesBloc(context.read<HiveRepository>()),
                   ),
-                ], child: AllRecipesPage())
+                ], child: const AllRecipesPage())
               ],
             ),
             PageNavigationBar(

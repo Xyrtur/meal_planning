@@ -51,7 +51,7 @@ class WeeklyPlanningPage extends StatelessWidget {
                           .add(WeeklyPlanningWeekRangePressed(i));
                     },
                     child: Container(
-                      width: (currentWeekRanges.length / 2 == 3 ? 26.5 : 35).w,
+                      width: (currentWeekRanges.length / 2 == 3 ? 26.5 : 40).w,
                       decoration: BoxDecoration(
                         color: selected == i
                             ? const Color.fromARGB(255, 218, 180, 197)
@@ -128,7 +128,8 @@ class WeeklyPlanningPage extends StatelessWidget {
             mealTile(
                 mealName: mealsInDay[i],
                 category:
-                    recipeTitlestoRecipeMap[mealsInDay[i]]?.category ?? "",
+                    recipeTitlestoRecipeMap[mealsInDay[i]]?.categories.first ??
+                        "",
                 context: context)
         ],
       ),

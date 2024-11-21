@@ -20,7 +20,7 @@ class RecipeAdapter extends TypeAdapter<Recipe> {
       title: fields[0] as String,
       ingredients: fields[1] as String,
       instructions: fields[2] as String,
-      category: fields[3] as String,
+      categories: (fields[3] as List).cast<String>(),
     );
   }
 
@@ -35,7 +35,7 @@ class RecipeAdapter extends TypeAdapter<Recipe> {
       ..writeByte(2)
       ..write(obj.instructions)
       ..writeByte(3)
-      ..write(obj.category);
+      ..write(obj.categories);
   }
 
   @override
