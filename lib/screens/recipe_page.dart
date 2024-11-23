@@ -1,3 +1,4 @@
+import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/blocs/cubits.dart';
@@ -5,6 +6,8 @@ import 'package:meal_planning/blocs/recipe_bloc.dart';
 import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/models/recipe.dart';
 import 'package:meal_planning/utils/centre.dart';
+import 'package:meal_planning/widgets/dialogs/delete_confirmation_dialog.dart';
+import 'package:meal_planning/widgets/dialogs/filter_category_dialog.dart.dart';
 import 'package:sizer/sizer.dart';
 
 class RecipePage extends StatelessWidget {
@@ -14,8 +17,14 @@ class RecipePage extends StatelessWidget {
   final GlobalKey<RecipeTextFieldState> titleKey = GlobalKey<RecipeTextFieldState>();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  final ValueNotifier<bool?> deletingRecipe = ValueNotifier<bool?>(false);
+
   @override
   Widget build(BuildContext context) {
+    deletingRecipe.addListener(() {
+      if (deletingRecipe.value ?? false) Navigator.pop(context);
+    });
+
     return SafeArea(child: Scaffold(
       body: BlocBuilder<RecipeBloc, RecipeState>(builder: (_, state) {
         List<String> ingredients = state.recipe?.ingredients.split('\n') ?? [];
@@ -97,8 +106,15 @@ class RecipePage extends StatelessWidget {
                         ),
                   state.recipe != null
                       ? GestureDetector(
-                          onTap: () {
-                            context.read<RecipeBloc>().add(DeleteRecipe(state.recipe!));
+                          onTap: () async {
+                            deletingRecipe.value = await showDialog<bool>(
+                                context: context,
+                                builder: (_) {
+                                  return BlocProvider.value(
+                                    value: context.read<RecipeBloc>(),
+                                    child: DeleteConfirmationDialog(recipe: state.recipe!),
+                                  );
+                                });
                           },
                           child: Container(padding: EdgeInsets.all(3.w), child: const Icon(Icons.delete)),
                         )
@@ -127,7 +143,23 @@ class RecipePage extends StatelessWidget {
                       state is EditingRecipe
                           ? GestureDetector(
                               onTap: () {
-                                //TODO: category choose dialog
+                                showAlignedDialog(
+                                    barrierColor: Colors.transparent,
+                                    offset: Offset(1.w, 0),
+                                    context: context,
+                                    builder: (BuildContext dialogContext) => GestureDetector(
+                                          onTap: () => Navigator.pop(dialogContext),
+                                          child: Scaffold(
+                                            backgroundColor: Colors.transparent,
+                                            body: BlocProvider<RecipeCategoriesSelectedCubit>(
+                                              create: (_) =>
+                                                  RecipeCategoriesSelectedCubit(state.recipe?.categories ?? []),
+                                              child: FilterCategoryDialog(
+                                                  categoriesMap:
+                                                      context.read<SettingsBloc>().state.recipeCategoriesMap),
+                                            ),
+                                          ),
+                                        ));
                               },
                               child: Container(
                                   padding: EdgeInsets.all(2.w),
