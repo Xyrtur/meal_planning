@@ -21,8 +21,9 @@ class DeleteRecipe extends RecipeEvent {
 }
 
 class UpdateRecipe extends RecipeEvent {
-  final Recipe recipe;
-  const UpdateRecipe(this.recipe);
+  final Recipe oldRecipe;
+  final Recipe newRecipe;
+  const UpdateRecipe(this.oldRecipe, this.newRecipe);
 }
 
 class EditRecipeClicked extends RecipeEvent {
@@ -31,20 +32,22 @@ class EditRecipeClicked extends RecipeEvent {
 }
 
 sealed class RecipeState extends Equatable {
-  const RecipeState();
+  final Recipe? recipe;
+  const RecipeState({this.recipe});
 
   @override
   List<Object> get props => [];
 }
 
 class ViewingRecipe extends RecipeState {
-  final Recipe recipe;
-  const ViewingRecipe(this.recipe);
+  @override
+  covariant Recipe recipe;
+
+  ViewingRecipe(this.recipe);
 }
 
 class EditingRecipe extends RecipeState {
-  final Recipe? recipe;
-  const EditingRecipe(this.recipe);
+  const EditingRecipe({super.recipe});
 }
 
 class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
@@ -52,24 +55,22 @@ class RecipeBloc extends Bloc<RecipeEvent, RecipeState> {
   final Recipe? recipe;
   RecipeBloc(this.hive, this.recipe)
       : super(() {
-          return recipe == null
-              ? const EditingRecipe(null)
-              : ViewingRecipe(recipe);
+          return recipe == null ? const EditingRecipe(recipe: null) : ViewingRecipe(recipe);
         }()) {
     on<AddRecipe>((event, emit) {
-      hive.addRecipe();
+      hive.addRecipe(recipe: event.recipe);
       emit(ViewingRecipe(event.recipe));
     });
     on<DeleteRecipe>((event, emit) {
-      hive.deleteRecipe();
+      hive.deleteRecipe(recipe: event.recipe);
       emit(ViewingRecipe(event.recipe));
     });
     on<UpdateRecipe>((event, emit) {
-      hive.updateRecipe();
-      emit(ViewingRecipe(event.recipe));
+      hive.updateRecipe(oldRecipe: event.oldRecipe, updatedRecipe: event.newRecipe);
+      emit(ViewingRecipe(event.newRecipe));
     });
     on<EditRecipeClicked>((event, emit) {
-      emit(EditingRecipe(event.recipe));
+      emit(EditingRecipe(recipe: event.recipe));
     });
   }
 }

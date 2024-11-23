@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:meal_planning/screens/recipe_page.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
 
 class ToggleGroceryDeletingCubit extends Cubit<bool> {
@@ -28,10 +30,7 @@ class GroceryDraggingItemCubit extends Cubit<List<dynamic>> {
   GroceryDraggingItemCubit() : super([null, null]);
   // int? draggingIndex, int? hoverIndex
 
-  void update(
-      {required int? draggingIndex,
-      required int? hoveringIndex,
-      required String? originCategory}) {
+  void update({required int? draggingIndex, required int? hoveringIndex, required String? originCategory}) {
     emit([draggingIndex, hoveringIndex, originCategory]);
   }
 }
@@ -66,5 +65,53 @@ class SettingsAddColorCubit extends Cubit<int?> {
 
   void selectColor({required int? color}) {
     emit(color);
+  }
+}
+
+class RecipeCategoriesSelectedCubit extends Cubit<List<String>> {
+  final List<String> categories;
+  RecipeCategoriesSelectedCubit(this.categories) : super(categories);
+
+  void addDeleteCategory({required String category}) {
+    if (state.remove(category)) {
+      state.add(category);
+    }
+    emit(state);
+  }
+}
+
+class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+  final List<GlobalKey<RecipeTextFieldState>> keys;
+
+  RecipeIngredientKeysCubit(this.keys) : super(keys);
+
+  GlobalKey<RecipeTextFieldState> addKey() {
+    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+    state.add(createdKey);
+    emit(state);
+    return createdKey;
+  }
+
+  void deleteKey({required GlobalKey<RecipeTextFieldState> key}) {
+    assert(state.remove(key));
+    emit(state);
+  }
+}
+
+class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+  final List<GlobalKey<RecipeTextFieldState>> keys;
+
+  RecipeInstructionsKeysCubit(this.keys) : super(keys);
+
+  GlobalKey<RecipeTextFieldState> addKey() {
+    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+    state.add(createdKey);
+    emit(state);
+    return createdKey;
+  }
+
+  void deleteKey({required GlobalKey<RecipeTextFieldState> key}) {
+    assert(state.remove(key));
+    emit(state);
   }
 }
