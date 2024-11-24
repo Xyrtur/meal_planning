@@ -30,7 +30,10 @@ class GroceryDraggingItemCubit extends Cubit<List<dynamic>> {
   GroceryDraggingItemCubit() : super([null, null]);
   // int? draggingIndex, int? hoverIndex
 
-  void update({required int? draggingIndex, required int? hoveringIndex, required String? originCategory}) {
+  void update(
+      {required int? draggingIndex,
+      required int? hoveringIndex,
+      required String? originCategory}) {
     emit([draggingIndex, hoveringIndex, originCategory]);
   }
 }
@@ -80,13 +83,15 @@ class RecipeCategoriesSelectedCubit extends Cubit<List<String>> {
   }
 }
 
-class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeIngredientKeysCubit
+    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeIngredientKeysCubit(this.keys) : super(keys);
 
   GlobalKey<RecipeTextFieldState> addKey() {
-    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+    GlobalKey<RecipeTextFieldState> createdKey =
+        GlobalKey<RecipeTextFieldState>();
     state.add(createdKey);
     emit(state);
     return createdKey;
@@ -98,13 +103,15 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
   }
 }
 
-class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeInstructionsKeysCubit
+    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeInstructionsKeysCubit(this.keys) : super(keys);
 
   GlobalKey<RecipeTextFieldState> addKey() {
-    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+    GlobalKey<RecipeTextFieldState> createdKey =
+        GlobalKey<RecipeTextFieldState>();
     state.add(createdKey);
     emit(state);
     return createdKey;
@@ -113,5 +120,17 @@ class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldSt
   void deleteKey({required GlobalKey<RecipeTextFieldState> key}) {
     assert(state.remove(key));
     emit(state);
+  }
+}
+
+class IngredientsAlreadyDraggedCubit extends Cubit<List<String>> {
+  final List<String> ingredients = [];
+  IngredientsAlreadyDraggedCubit() : super([]);
+
+  void add({required String item}) {
+    if (!ingredients.contains(item)) {
+      ingredients.add(item);
+    }
+    emit(ingredients);
   }
 }

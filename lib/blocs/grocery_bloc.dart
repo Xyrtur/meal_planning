@@ -21,7 +21,7 @@ final class ToggleGroceryCategory extends GroceryEvent {
 }
 
 final class AddIngredient extends GroceryEvent {
-  final GroceryItem item;
+  final String item;
   final String category;
   const AddIngredient(this.item, this.category);
 
@@ -97,7 +97,8 @@ class GroceryBloc extends Bloc<GroceryEvent, GroceryState> {
 
   GroceryBloc(this.hive) : super(GroceryInitial(hive.groceryItemsMap)) {
     on<AddIngredient>((event, emit) {
-      hive.addGroceryItem(event.item, event.category);
+      hive.addGroceryItem(
+          GroceryItem(name: event.item, isChecked: false), event.category);
       emit(GroceryListUpdated(hive.groceryItemsMap));
     });
 

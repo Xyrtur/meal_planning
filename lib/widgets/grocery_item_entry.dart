@@ -88,10 +88,8 @@ class GroceryAddEntryState extends State<GroceryAddEntry>
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
                       if (formKey.currentState!.validate()) {
-                        context.read<GroceryBloc>().add(AddIngredient(
-                            GroceryItem(
-                                name: controller.text, isChecked: false),
-                            widget.category));
+                        context.read<GroceryBloc>().add(
+                            AddIngredient(controller.text, widget.category));
                         context.read<GroceryAddEntryCubit>().update("");
                       }
                     },
