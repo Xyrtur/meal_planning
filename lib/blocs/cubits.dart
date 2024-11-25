@@ -76,10 +76,12 @@ class RecipeCategoriesSelectedCubit extends Cubit<List<String>> {
   RecipeCategoriesSelectedCubit(this.categories) : super(categories);
 
   void addDeleteCategory({required String category}) {
-    if (state.remove(category)) {
-      state.add(category);
+    final newList = [...state];
+
+    if (!newList.remove(category)) {
+      newList.add(category);
     }
-    emit(state);
+    emit(newList);
   }
 }
 
@@ -89,17 +91,19 @@ class RecipeIngredientKeysCubit
 
   RecipeIngredientKeysCubit(this.keys) : super(keys);
 
-  GlobalKey<RecipeTextFieldState> addKey() {
+  void addKey() {
     GlobalKey<RecipeTextFieldState> createdKey =
         GlobalKey<RecipeTextFieldState>();
-    state.add(createdKey);
-    emit(state);
-    return createdKey;
+    final newList = [...state];
+    newList.add(createdKey);
+    emit(newList);
+    // return createdKey;
   }
 
   void deleteKey({required GlobalKey<RecipeTextFieldState> key}) {
-    assert(state.remove(key));
-    emit(state);
+    final newList = [...state];
+    assert(newList.remove(key));
+    emit(newList);
   }
 }
 

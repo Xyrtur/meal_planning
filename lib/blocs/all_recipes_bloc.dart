@@ -13,6 +13,10 @@ class CategoryUpdated extends AllRecipesEvent {
   const CategoryUpdated();
 }
 
+class RecipeAddDeleted extends AllRecipesEvent {
+  const RecipeAddDeleted();
+}
+
 class RecipeClicked extends AllRecipesEvent {
   final String recipeName;
   const RecipeClicked(this.recipeName);
@@ -91,6 +95,18 @@ class AllRecipesBloc extends Bloc<AllRecipesEvent, AllRecipesState> {
     };
     toggledCategories = Map.from(hive.recipeCategoriesMap)
       ..updateAll((key, value) => value = null);
+
+    on<RecipeAddDeleted>((event, emit) {
+      allRecipes = <String, List<int>>{
+        for (String element in hive.recipeTitlestoRecipeMap.keys.toList())
+          element: [
+            for (String category
+                in hive.recipeTitlestoRecipeMap[element]!.categories)
+              hive.recipeCategoriesMap[category]!
+          ]
+      };
+      emit(AllRecipesListUpdated(allRecipes, toggledCategories));
+    });
 
     on<FilterToggle>((event, emit) {
       if (toggledCategories[event.category] == null) {

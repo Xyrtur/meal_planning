@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 class Centre {
-  static Color bgColor = const Color.fromARGB(255, 221, 212, 211);
+  static Color bgColor = const Color.fromARGB(255, 240, 229, 228);
   static Color primaryColor = const Color.fromARGB(255, 88, 105, 219);
   static Color shadowbgColor = const Color.fromARGB(255, 198, 191, 190);
 

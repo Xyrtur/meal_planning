@@ -92,7 +92,7 @@ class _LandingPageViewState extends State<LandingPageView> {
                   BlocProvider.value(
                     value: context.read<GroceryBloc>(),
                   ),
-                ], child: const AllRecipesPage())
+                ], child: AllRecipesPage())
               ],
             ),
             PageNavigationBar(

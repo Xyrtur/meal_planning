@@ -52,8 +52,19 @@ class AllRecipesPage extends StatelessWidget {
                                   BlocProvider.value(
                                     value: context.read<GroceryBloc>(),
                                   ),
+                                  BlocProvider.value(
+                                    value: context.read<SettingsBloc>(),
+                                  ),
+                                  BlocProvider<RecipeCategoriesSelectedCubit>(
+                                    create: (_) =>
+                                        RecipeCategoriesSelectedCubit([]),
+                                  ),
+                                  BlocProvider.value(
+                                    value: context.read<AllRecipesBloc>(),
+                                  ),
                                 ],
                                 child: RecipePage(
+                                    titleKey: GlobalKey<RecipeTextFieldState>(),
                                     existingRecipeTitles: context
                                         .read<HiveRepository>()
                                         .recipeTitlestoRecipeMap
@@ -83,7 +94,7 @@ class AllRecipesPage extends StatelessWidget {
           ),
           const FilterArea(),
           const RecipeSearchbar(),
-          const RecipeListview(
+          RecipeListview(
             isWeeklyPlanning: false,
           )
         ],
@@ -189,7 +200,8 @@ class _RecipeSearchbarState extends State<RecipeSearchbar> {
 
 class RecipeListview extends StatelessWidget {
   final bool isWeeklyPlanning;
-  const RecipeListview({super.key, required this.isWeeklyPlanning});
+  RecipeListview({super.key, required this.isWeeklyPlanning});
+  final ScrollController scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -235,8 +247,19 @@ class RecipeListview extends StatelessWidget {
                           BlocProvider.value(
                             value: context.read<GroceryBloc>(),
                           ),
+                          BlocProvider.value(
+                            value: context.read<SettingsBloc>(),
+                          ),
+                          BlocProvider<RecipeCategoriesSelectedCubit>(
+                            create: (_) => RecipeCategoriesSelectedCubit(
+                                state.recipe.categories),
+                          ),
+                          BlocProvider.value(
+                            value: context.read<AllRecipesBloc>(),
+                          ),
                         ],
                         child: RecipePage(
+                            titleKey: GlobalKey<RecipeTextFieldState>(),
                             existingRecipeTitles: context
                                 .read<HiveRepository>()
                                 .recipeTitlestoRecipeMap
@@ -249,37 +272,47 @@ class RecipeListview extends StatelessWidget {
       }, builder: (context, state) {
         List<String> sortedRecipeNames = state.filteredRecipeMap.keys.toList()
           ..sort();
-        return ListView.builder(
-            itemCount: state.filteredRecipeMap.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  context
-                      .read<AllRecipesBloc>()
-                      .add(RecipeClicked(sortedRecipeNames[index]));
-                },
-                behavior: HitTestBehavior.translucent,
-                child: ListTile(
-                  title: Text(sortedRecipeNames[index]),
-                  subtitle: Wrap(
-                    spacing: 2.w,
-                    runSpacing: 0.5.h,
-                    children: [
-                      for (int value
-                          in state.filteredRecipeMap[sortedRecipeNames[index]]!)
-                        Container(
-                          width: 2.w,
-                          height: 2.w,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Color(value),
-                          ),
-                        )
-                    ],
+        return RawScrollbar(
+          padding: EdgeInsets.symmetric(horizontal: 2.w),
+          trackVisibility: true,
+          thumbVisibility: true,
+          controller: scrollController,
+          thumbColor: Centre.primaryColor.withAlpha(200),
+          radius: const Radius.circular(8),
+          thickness: 0.5.h,
+          child: ListView.builder(
+              controller: scrollController,
+              itemCount: state.filteredRecipeMap.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    context
+                        .read<AllRecipesBloc>()
+                        .add(RecipeClicked(sortedRecipeNames[index]));
+                  },
+                  behavior: HitTestBehavior.translucent,
+                  child: ListTile(
+                    title: Text(sortedRecipeNames[index]),
+                    subtitle: Wrap(
+                      spacing: 2.w,
+                      runSpacing: 0.5.h,
+                      children: [
+                        for (int value in state
+                            .filteredRecipeMap[sortedRecipeNames[index]]!)
+                          Container(
+                            width: 2.w,
+                            height: 2.w,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Color(value),
+                            ),
+                          )
+                      ],
+                    ),
                   ),
-                ),
-              );
-            });
+                );
+              }),
+        );
       }),
     );
   }

@@ -99,8 +99,13 @@ class WeeklyPlanningPage extends StatelessWidget {
         mealChosen.value = await showDialog<String>(
             context: context,
             builder: (_) {
-              return BlocProvider(
-                create: (_) => AllRecipesBloc(context.read<HiveRepository>()),
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider<AllRecipesBloc>(
+                      create: (_) =>
+                          AllRecipesBloc(context.read<HiveRepository>())),
+                  BlocProvider.value(value: context.read<SettingsBloc>())
+                ],
                 child: const ChooseRecipeDialog(),
               );
             });
@@ -115,7 +120,10 @@ class WeeklyPlanningPage extends StatelessWidget {
                       .read<SettingsBloc>()
                       .state
                       .recipeCategoriesMap[category] ??
-                  Colors.blueGrey.value),
+                  context
+                      .read<SettingsBloc>()
+                      .state
+                      .genericCategoriesMap[mealName]!),
           borderRadius: const BorderRadius.all(Radius.circular(25)),
           border: RDottedLineBorder.all(
             width: 1,
@@ -124,7 +132,7 @@ class WeeklyPlanningPage extends StatelessWidget {
         child: Center(
           child: Text(
             mealName,
-            style: TextStyle(fontSize: 5.sp),
+            style: Centre.listText,
           ),
         ),
       ),
@@ -147,7 +155,7 @@ class WeeklyPlanningPage extends StatelessWidget {
           for (int i = 0; i < 5; i++)
             mealTile(
                 mealName: mealsInDay[i],
-                mealsListIndex: mealsListDayIndex + i,
+                mealsListIndex: mealsListDayIndex * 5 + i,
                 category:
                     recipeTitlestoRecipeMap[mealsInDay[i]]?.categories.first ??
                         "",
@@ -172,6 +180,7 @@ class WeeklyPlanningPage extends StatelessWidget {
         context
             .read<WeeklyPlanningBloc>()
             .add(WeeklyPlanningUpdateMeal(mealChosen.value!, indexToUpdate));
+        mealChosen.value = null;
       }
     });
 
