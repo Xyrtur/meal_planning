@@ -23,7 +23,7 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
   @override
   void initState() {
     super.initState();
-    items = (context.read<GroceryBloc>().state as GroceryInitial).items;
+    items = context.read<GroceryBloc>().state.items;
   }
 
   List<String> collapsedCategories = [];
@@ -43,8 +43,7 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
     return Expanded(child: Builder(builder: (context) {
       final settingsState = context.watch<SettingsBloc>().state;
       final isDragging = context.watch<GroceryScrollDraggingCubit>().state;
-      final categoryOrderState =
-          context.watch<GroceryCategoryOrderCubit>().state;
+      final categoryOrderState = context.watch<GroceryCategoryOrderCubit>().state;
       final toggleState = context.watch<ToggleGroceryDeletingCubit>().state;
 
       return BlocConsumer<GroceryBloc, GroceryState>(
@@ -68,11 +67,8 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
                       for (String category in categoryOrderState)
                         MultiBlocProvider(
                           providers: [
-                            BlocProvider.value(
-                                value:
-                                    context.read<GroceryDraggingItemCubit>()),
-                            BlocProvider.value(
-                                value: context.read<GroceryCategoryHover>()),
+                            BlocProvider.value(value: context.read<GroceryDraggingItemCubit>()),
+                            BlocProvider.value(value: context.read<GroceryCategoryHover>()),
                             BlocProvider<GroceryAddEntryCubit>(
                               create: (_) => GroceryAddEntryCubit(),
                             ),
@@ -84,8 +80,7 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
                             categoryName: category,
                             categoryItems: items[category]!,
                             inDeleteMode: toggleState,
-                            categoryColor: Color(
-                                settingsState.groceryCategoriesMap[category]!),
+                            categoryColor: Color(settingsState.groceryCategoriesMap[category]!),
                           ),
                         )
                     ],
@@ -97,9 +92,7 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
                       final String category = tempList.removeAt(oldIndex);
                       tempList.insert(newIndex, category);
 
-                      context
-                          .read<GroceryCategoryOrderCubit>()
-                          .update(tempList);
+                      context.read<GroceryCategoryOrderCubit>().update(tempList);
                     },
                   ),
                   isDragging && scrollController.offset != 0
@@ -118,9 +111,7 @@ class _CategoryBoxesState extends State<CategoryBoxes> {
                           ),
                         )
                       : const SizedBox(),
-                  isDragging &&
-                          scrollController.offset !=
-                              scrollController.position.maxScrollExtent
+                  isDragging && scrollController.offset != scrollController.position.maxScrollExtent
                       ? Align(
                           alignment: Alignment.bottomCenter,
                           child: DragTarget<GroceryItem>(
@@ -155,11 +146,10 @@ class _ClearButtonsState extends State<ClearButtons> {
   @override
   void initState() {
     super.initState();
-    items = (context.read<GroceryBloc>().state as GroceryInitial).items;
+    items = context.read<GroceryBloc>().state.items;
   }
 
-  Widget clearButton(
-      {required void Function() onTap, required ClearButton type}) {
+  Widget clearButton({required void Function() onTap, required ClearButton type}) {
     return GestureDetector(
         onTap: onTap,
         child: Container(
@@ -175,8 +165,7 @@ class _ClearButtonsState extends State<ClearButtons> {
               ),
             ],
             color: Centre.bgColor,
-            shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(10))),
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
           ),
           child: type == ClearButton.clearAll
               ? const Text("clear all")
@@ -210,16 +199,14 @@ class _ClearButtonsState extends State<ClearButtons> {
                     }
                   }
                 }
-                context.read<GroceryBloc>().add(
-                    DeleteIngredients(items: itemsToDelete, clearAll: false));
+                context.read<GroceryBloc>().add(DeleteIngredients(items: itemsToDelete, clearAll: false));
               },
               type: ClearButton.clearChecked),
           clearButton(
               onTap: () {
                 Map<String, List<GroceryItem>> itemsToDelete = items;
 
-                context.read<GroceryBloc>().add(
-                    DeleteIngredients(items: itemsToDelete, clearAll: true));
+                context.read<GroceryBloc>().add(DeleteIngredients(items: itemsToDelete, clearAll: true));
               },
               type: ClearButton.clearAll)
         ],

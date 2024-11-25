@@ -30,10 +30,7 @@ class GroceryDraggingItemCubit extends Cubit<List<dynamic>> {
   GroceryDraggingItemCubit() : super([null, null]);
   // int? draggingIndex, int? hoverIndex
 
-  void update(
-      {required int? draggingIndex,
-      required int? hoveringIndex,
-      required String? originCategory}) {
+  void update({required int? draggingIndex, required int? hoveringIndex, required String? originCategory}) {
     emit([draggingIndex, hoveringIndex, originCategory]);
   }
 }
@@ -85,15 +82,13 @@ class RecipeCategoriesSelectedCubit extends Cubit<List<String>> {
   }
 }
 
-class RecipeIngredientKeysCubit
-    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeIngredientKeysCubit(this.keys) : super(keys);
 
   void addKey() {
-    GlobalKey<RecipeTextFieldState> createdKey =
-        GlobalKey<RecipeTextFieldState>();
+    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
     final newList = [...state];
     newList.add(createdKey);
     emit(newList);
@@ -107,15 +102,13 @@ class RecipeIngredientKeysCubit
   }
 }
 
-class RecipeInstructionsKeysCubit
-    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeInstructionsKeysCubit(this.keys) : super(keys);
 
   GlobalKey<RecipeTextFieldState> addKey() {
-    GlobalKey<RecipeTextFieldState> createdKey =
-        GlobalKey<RecipeTextFieldState>();
+    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
     state.add(createdKey);
     emit(state);
     return createdKey;
@@ -132,9 +125,27 @@ class IngredientsAlreadyDraggedCubit extends Cubit<List<String>> {
   IngredientsAlreadyDraggedCubit() : super([]);
 
   void add({required String item}) {
-    if (!ingredients.contains(item)) {
-      ingredients.add(item);
+    final newList = [...state];
+    if (!newList.contains(item)) {
+      newList.add(item);
     }
-    emit(ingredients);
+    emit(newList);
+  }
+}
+
+class MultiSelectIngredientsCubit extends Cubit<List<String>> {
+  final List<String> multiSelected = [];
+  MultiSelectIngredientsCubit() : super([]);
+
+  void toggleMultiSelect({required String item}) {
+    final newList = [...state];
+    if (!newList.remove(item)) {
+      newList.add(item);
+    }
+    emit(newList);
+  }
+
+  void clear() {
+    emit([]);
   }
 }
