@@ -20,7 +20,6 @@ class RecipePage extends StatelessWidget {
   RecipePage({super.key, required this.existingRecipeTitles, required this.titleKey});
   // List of keys will let us validate all their controllers at once when user is finished editing
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
   final ValueNotifier<bool?> deletingRecipe = ValueNotifier<bool?>(false);
 
   @override
@@ -318,61 +317,71 @@ class RecipePage extends StatelessWidget {
                   height: 0.5.h,
                   color: Centre.shadowbgColor,
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                  child: BlocBuilder<RecipeInstructionsKeysCubit, List<GlobalKey<RecipeTextFieldState>>>(
-                      builder: (_, instructionsKeys) {
-                    return Column(children: [
-                      for (int i = 0;
-                          i < ((state is ViewingRecipe) ? instructions.length : instructionsKeys.length);
-                          i++)
-                        Row(
-                          children: [
-                            state is EditingRecipe
-                                ? GestureDetector(
-                                    onTap: () {
-                                      context.read<RecipeInstructionsKeysCubit>().deleteKey(key: instructionsKeys[i]);
-                                    },
-                                    behavior: HitTestBehavior.translucent,
-                                    child: Padding(
-                                      padding: EdgeInsets.all(2.w),
-                                      child: const Icon(Icons.delete),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                    child: BlocBuilder<RecipeInstructionsKeysCubit, List<GlobalKey<RecipeTextFieldState>>>(
+                        builder: (_, instructionsKeys) {
+                      print("rebuilding steps");
+                      return BlocBuilder<InstructionsListCubit, List<String>>(
+                          buildWhen: (previous, current) => false,
+                          builder: (_, editedInstructionsList) {
+                            return Column(children: [
+                              for (int i = 0;
+                                  i < ((state is ViewingRecipe) ? instructions.length : instructionsKeys.length);
+                                  i++)
+                                Row(
+                                  children: [
+                                    state is EditingRecipe
+                                        ? GestureDetector(
+                                            onTap: () {
+                                              context
+                                                  .read<RecipeInstructionsKeysCubit>()
+                                                  .deleteKey(key: instructionsKeys[i]);
+                                            },
+                                            behavior: HitTestBehavior.translucent,
+                                            child: Padding(
+                                              padding: EdgeInsets.all(2.w),
+                                              child: const Icon(Icons.delete),
+                                            ),
+                                          )
+                                        : const SizedBox(),
+                                    Text("${i + 1}"),
+                                    SizedBox(
+                                      width: 3.w,
                                     ),
-                                  )
-                                : const SizedBox(),
-                            Text("${i + 1}"),
-                            SizedBox(
-                              width: 3.w,
-                            ),
-                            state is ViewingRecipe
-                                ? Expanded(
-                                    child: Text(
-                                    instructions[i],
-                                    maxLines: 5,
-                                  ))
-                                : Expanded(
-                                    child: RecipeTextField(
-                                      key: instructionsKeys[i],
-                                      type: TextFieldType.instruction,
-                                      text: instructions.isEmpty ? "" : instructions[i],
-                                    ),
-                                  )
-                          ],
-                        )
-                    ]);
-                  }),
+                                    state is ViewingRecipe
+                                        ? Expanded(
+                                            child: Text(
+                                            instructions[i],
+                                            maxLines: 5,
+                                          ))
+                                        : Expanded(
+                                            child: RecipeTextField(
+                                              key: instructionsKeys[i],
+                                              stepNumber: i,
+                                              type: TextFieldType.instruction,
+                                              text: instructions.isEmpty ? "" : editedInstructionsList[i],
+                                            ),
+                                          )
+                                  ],
+                                )
+                            ]);
+                          });
+                    }),
+                  ),
                 ),
                 state is EditingRecipe
                     ? GestureDetector(
                         onTap: () {
                           context.read<RecipeInstructionsKeysCubit>().addKey();
+                          context.read<InstructionsListCubit>().add(instruction: "", stepNumber: -1);
                         },
                         child: Container(
                           padding: EdgeInsets.all(2.w),
                           child: const Icon(Icons.add),
                         ))
                     : const SizedBox(),
-                const Spacer()
               ],
             ),
           ),
@@ -388,7 +397,8 @@ class RecipeTextField extends StatefulWidget {
   final List<String>? existingTitles;
   final TextFieldType? type;
   final String? text;
-  const RecipeTextField({super.key, this.existingTitles, this.text, this.type});
+  final int? stepNumber;
+  const RecipeTextField({super.key, this.existingTitles, this.text, this.type, this.stepNumber});
 
   @override
   State<RecipeTextField> createState() => RecipeTextFieldState();
@@ -414,7 +424,7 @@ class RecipeTextFieldState extends State<RecipeTextField> {
   Widget build(BuildContext context) {
     return TextFormField(
       // autofocus: widget.existingTitles != null,
-      contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
+      contextMenuBuilder: (_, EditableTextState editableTextState) {
         return AdaptiveTextSelectionToolbar.editable(
           anchors: editableTextState.contextMenuAnchors,
           onLiveTextInput: null,
@@ -437,9 +447,13 @@ class RecipeTextFieldState extends State<RecipeTextField> {
                 // createdKey.currentState!.controller.text = newText;
               }
             } else if (widget.type == TextFieldType.instruction) {
-              for (String newText in fields) {
-                GlobalKey<RecipeTextFieldState> createdKey = context.read<RecipeInstructionsKeysCubit>().addKey();
-                createdKey.currentState!.controller.text = newText;
+              for (int i = 0; i < fields.length; i++) {
+                context.read<RecipeInstructionsKeysCubit>().addKey();
+                if (i == 0) {
+                  context.read<InstructionsListCubit>().replace(instruction: fields[0], stepNumber: widget.stepNumber!);
+                } else {
+                  context.read<InstructionsListCubit>().add(instruction: fields[i], stepNumber: widget.stepNumber! + i);
+                }
               }
             }
 

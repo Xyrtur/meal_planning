@@ -109,14 +109,16 @@ class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldSt
 
   GlobalKey<RecipeTextFieldState> addKey() {
     GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
-    state.add(createdKey);
-    emit(state);
+    final newList = [...state];
+    newList.add(createdKey);
+    emit(newList);
     return createdKey;
   }
 
   void deleteKey({required GlobalKey<RecipeTextFieldState> key}) {
-    assert(state.remove(key));
-    emit(state);
+    final newList = [...state];
+    assert(newList.remove(key));
+    emit(newList);
   }
 }
 
@@ -147,5 +149,28 @@ class MultiSelectIngredientsCubit extends Cubit<List<String>> {
 
   void clear() {
     emit([]);
+  }
+}
+
+class InstructionsListCubit extends Cubit<List<String>> {
+  final List<String> instructionsList;
+  InstructionsListCubit(this.instructionsList) : super(instructionsList);
+
+  void add({required String instruction, required int stepNumber}) {
+    final newList = [...state];
+    newList.insert(stepNumber, instruction);
+    emit(newList);
+  }
+
+  void replace({required String instruction, required int stepNumber}) {
+    final newList = [...state];
+    newList[stepNumber] = instruction;
+    emit(newList);
+  }
+
+  void deleteKey({required int stepNumber}) {
+    final newList = [...state];
+    newList.removeAt(stepNumber);
+    emit(newList);
   }
 }
