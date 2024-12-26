@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/blocs/all_recipes_bloc.dart';
 import 'package:meal_planning/blocs/cubits.dart';
 import 'package:meal_planning/blocs/grocery_bloc.dart';
+import 'package:meal_planning/blocs/import_export_bloc.dart';
 import 'package:meal_planning/blocs/recipe_bloc.dart';
 import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/screens/recipe_page.dart';
@@ -205,115 +206,122 @@ class RecipeListview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: BlocConsumer<AllRecipesBloc, AllRecipesState>(
-          listener: (context, state) {
-        if (state is OpeningRecipePage) {
-          if (isWeeklyPlanning) {
-            Navigator.pop(context, state.recipe.title);
-          } else {
-            List<String> ingredients = state.recipe.ingredients.split('\n');
-            List<String> instructions = state.recipe.instructions.split('\n');
-            final List<GlobalKey<RecipeTextFieldState>> ingredientKeys = [];
-            final List<GlobalKey<RecipeTextFieldState>> instructionKeys = [];
-            // TextFields for each ingredient
-            for (int i = 0; i < ingredients.length; i++) {
-              ingredientKeys.add(GlobalKey<RecipeTextFieldState>());
-            }
-
-            // TextFields for each instruction step
-            for (int i = 0; i < instructions.length; i++) {
-              instructionKeys.add(GlobalKey<RecipeTextFieldState>());
-            }
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => MultiBlocProvider(
-                        providers: [
-                          BlocProvider<RecipeBloc>(
-                            create: (_) => RecipeBloc(
-                                context.read<HiveRepository>(), state.recipe),
-                          ),
-                          BlocProvider<RecipeCategoriesSelectedCubit>(
-                            create: (_) => RecipeCategoriesSelectedCubit(
-                                state.recipe.categories),
-                          ),
-                          BlocProvider<RecipeIngredientKeysCubit>(
-                            create: (_) =>
-                                RecipeIngredientKeysCubit(ingredientKeys),
-                          ),
-                          BlocProvider<RecipeInstructionsKeysCubit>(
-                            create: (_) =>
-                                RecipeInstructionsKeysCubit(instructionKeys),
-                          ),
-                          BlocProvider.value(
-                            value: context.read<GroceryBloc>(),
-                          ),
-                          BlocProvider.value(
-                            value: context.read<SettingsBloc>(),
-                          ),
-                          BlocProvider<RecipeCategoriesSelectedCubit>(
-                            create: (_) => RecipeCategoriesSelectedCubit(
-                                state.recipe.categories),
-                          ),
-                          BlocProvider.value(
-                            value: context.read<AllRecipesBloc>(),
-                          ),
-                        ],
-                        child: RecipePage(
-                            titleKey: GlobalKey<RecipeTextFieldState>(),
-                            existingRecipeTitles: context
-                                .read<HiveRepository>()
-                                .recipeTitlestoRecipeMap
-                                .keys
-                                .toList()))));
-          }
+    return BlocListener<ImportExportBloc, ImportExportState>(
+      listener: (context, state) {
+        if (state is ImportFinished) {
+          context.read<AllRecipesBloc>().add(const RecipesImported());
         }
-      }, buildWhen: (previous, current) {
-        return current is! OpeningRecipePage;
-      }, builder: (context, state) {
-        List<String> sortedRecipeNames = state.filteredRecipeMap.keys.toList()
-          ..sort();
-        return RawScrollbar(
-          padding: EdgeInsets.symmetric(horizontal: 2.w),
-          trackVisibility: true,
-          thumbVisibility: true,
-          controller: scrollController,
-          thumbColor: Centre.primaryColor.withAlpha(200),
-          radius: const Radius.circular(8),
-          thickness: 0.5.h,
-          child: ListView.builder(
-              controller: scrollController,
-              itemCount: state.filteredRecipeMap.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    context
-                        .read<AllRecipesBloc>()
-                        .add(RecipeClicked(sortedRecipeNames[index]));
-                  },
-                  behavior: HitTestBehavior.translucent,
-                  child: ListTile(
-                    title: Text(sortedRecipeNames[index]),
-                    subtitle: Wrap(
-                      spacing: 2.w,
-                      runSpacing: 0.5.h,
-                      children: [
-                        for (int value in state
-                            .filteredRecipeMap[sortedRecipeNames[index]]!)
-                          Container(
-                            width: 2.w,
-                            height: 2.w,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Color(value),
+      },
+      child: Expanded(
+        child: BlocConsumer<AllRecipesBloc, AllRecipesState>(
+            listener: (context, state) {
+          if (state is OpeningRecipePage) {
+            if (isWeeklyPlanning) {
+              Navigator.pop(context, state.recipe.title);
+            } else {
+              List<String> ingredients = state.recipe.ingredients.split('\n');
+              List<String> instructions = state.recipe.instructions.split('\n');
+              final List<GlobalKey<RecipeTextFieldState>> ingredientKeys = [];
+              final List<GlobalKey<RecipeTextFieldState>> instructionKeys = [];
+              // TextFields for each ingredient
+              for (int i = 0; i < ingredients.length; i++) {
+                ingredientKeys.add(GlobalKey<RecipeTextFieldState>());
+              }
+
+              // TextFields for each instruction step
+              for (int i = 0; i < instructions.length; i++) {
+                instructionKeys.add(GlobalKey<RecipeTextFieldState>());
+              }
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => MultiBlocProvider(
+                          providers: [
+                            BlocProvider<RecipeBloc>(
+                              create: (_) => RecipeBloc(
+                                  context.read<HiveRepository>(), state.recipe),
                             ),
-                          )
-                      ],
+                            BlocProvider<RecipeCategoriesSelectedCubit>(
+                              create: (_) => RecipeCategoriesSelectedCubit(
+                                  state.recipe.categories),
+                            ),
+                            BlocProvider<RecipeIngredientKeysCubit>(
+                              create: (_) =>
+                                  RecipeIngredientKeysCubit(ingredientKeys),
+                            ),
+                            BlocProvider<RecipeInstructionsKeysCubit>(
+                              create: (_) =>
+                                  RecipeInstructionsKeysCubit(instructionKeys),
+                            ),
+                            BlocProvider.value(
+                              value: context.read<GroceryBloc>(),
+                            ),
+                            BlocProvider.value(
+                              value: context.read<SettingsBloc>(),
+                            ),
+                            BlocProvider<RecipeCategoriesSelectedCubit>(
+                              create: (_) => RecipeCategoriesSelectedCubit(
+                                  state.recipe.categories),
+                            ),
+                            BlocProvider.value(
+                              value: context.read<AllRecipesBloc>(),
+                            ),
+                          ],
+                          child: RecipePage(
+                              titleKey: GlobalKey<RecipeTextFieldState>(),
+                              existingRecipeTitles: context
+                                  .read<HiveRepository>()
+                                  .recipeTitlestoRecipeMap
+                                  .keys
+                                  .toList()))));
+            }
+          }
+        }, buildWhen: (previous, current) {
+          return current is! OpeningRecipePage;
+        }, builder: (context, state) {
+          List<String> sortedRecipeNames = state.filteredRecipeMap.keys.toList()
+            ..sort();
+          return RawScrollbar(
+            padding: EdgeInsets.symmetric(horizontal: 2.w),
+            trackVisibility: true,
+            thumbVisibility: true,
+            controller: scrollController,
+            thumbColor: Centre.primaryColor.withAlpha(200),
+            radius: const Radius.circular(8),
+            thickness: 0.5.h,
+            child: ListView.builder(
+                controller: scrollController,
+                itemCount: state.filteredRecipeMap.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      context
+                          .read<AllRecipesBloc>()
+                          .add(RecipeClicked(sortedRecipeNames[index]));
+                    },
+                    behavior: HitTestBehavior.translucent,
+                    child: ListTile(
+                      title: Text(sortedRecipeNames[index]),
+                      subtitle: Wrap(
+                        spacing: 2.w,
+                        runSpacing: 0.5.h,
+                        children: [
+                          for (int value in state
+                              .filteredRecipeMap[sortedRecipeNames[index]]!)
+                            Container(
+                              width: 2.w,
+                              height: 2.w,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: Color(value),
+                              ),
+                            )
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
-        );
-      }),
+                  );
+                }),
+          );
+        }),
+      ),
     );
   }
 }

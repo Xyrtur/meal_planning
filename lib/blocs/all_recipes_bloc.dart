@@ -38,6 +38,10 @@ class SearchClicked extends AllRecipesEvent {
   List<Object> get props => [searchString];
 }
 
+class RecipesImported extends AllRecipesEvent {
+  const RecipesImported();
+}
+
 sealed class AllRecipesState {
   // Contains the recipe title and its corresponding category color
   final Map<String, List<int>> filteredRecipeMap;
@@ -163,6 +167,10 @@ class AllRecipesBloc extends Bloc<AllRecipesEvent, AllRecipesState> {
     on<RecipeClicked>((event, emit) {
       Recipe recipe = hive.recipeTitlestoRecipeMap[event.recipeName]!;
       emit(OpeningRecipePage(filteredRecipes, toggledCategories, recipe));
+    });
+
+    on<RecipesImported>((event, emit) {
+      emit(AllRecipesListUpdated(allRecipes, toggledCategories));
     });
   }
 }

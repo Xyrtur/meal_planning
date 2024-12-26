@@ -26,38 +26,59 @@ class SettingsUpdateCategory extends SettingsEvent {
   final String oldName;
   final String? newName;
   final int? color;
-  const SettingsUpdateCategory(this.type, this.oldName, this.newName, this.color);
+  const SettingsUpdateCategory(
+      this.type, this.oldName, this.newName, this.color);
+}
+
+class SettingsImportedCategory extends SettingsEvent {
+  const SettingsImportedCategory();
 }
 
 sealed class SettingsState {
   final Map<String, int> groceryCategoriesMap;
   final Map<String, int> recipeCategoriesMap;
   final Map<String, int> genericCategoriesMap;
-  const SettingsState(this.groceryCategoriesMap, this.recipeCategoriesMap, this.genericCategoriesMap);
+  const SettingsState(this.groceryCategoriesMap, this.recipeCategoriesMap,
+      this.genericCategoriesMap);
 
-  List<Object> get props => [groceryCategoriesMap, recipeCategoriesMap, genericCategoriesMap];
+  List<Object> get props =>
+      [groceryCategoriesMap, recipeCategoriesMap, genericCategoriesMap];
 }
 
 class SettingsUpdated extends SettingsState {
-  const SettingsUpdated(super.groceryCategoriesMap, super.recipeCategoriesMap, super.genericCategoriesMap);
+  const SettingsUpdated(super.groceryCategoriesMap, super.recipeCategoriesMap,
+      super.genericCategoriesMap);
 }
 
 class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final HiveRepository hive;
 
   SettingsBloc(this.hive)
-      : super(SettingsUpdated(hive.groceryCategoriesMap, hive.recipeCategoriesMap, hive.genericCategoriesMap)) {
+      : super(SettingsUpdated(hive.groceryCategoriesMap,
+            hive.recipeCategoriesMap, hive.genericCategoriesMap)) {
     on<SettingsAddCategory>((event, emit) {
-      hive.addCategory(type: event.type, categoryName: event.name, color: event.color);
-      emit(SettingsUpdated(hive.groceryCategoriesMap, hive.recipeCategoriesMap, hive.genericCategoriesMap));
+      hive.addCategory(
+          type: event.type, categoryName: event.name, color: event.color);
+      emit(SettingsUpdated(hive.groceryCategoriesMap, hive.recipeCategoriesMap,
+          hive.genericCategoriesMap));
     });
     on<SettingsUpdateCategory>((event, emit) {
-      hive.updateCategory(oldName: event.oldName, type: event.type, newName: event.newName, color: event.color);
-      emit(SettingsUpdated(hive.groceryCategoriesMap, hive.recipeCategoriesMap, hive.genericCategoriesMap));
+      hive.updateCategory(
+          oldName: event.oldName,
+          type: event.type,
+          newName: event.newName,
+          color: event.color);
+      emit(SettingsUpdated(hive.groceryCategoriesMap, hive.recipeCategoriesMap,
+          hive.genericCategoriesMap));
     });
     on<SettingsDeleteCategory>((event, emit) {
       hive.deleteCategory(type: event.type, categoryName: event.name);
-      emit(SettingsUpdated(hive.groceryCategoriesMap, hive.recipeCategoriesMap, hive.genericCategoriesMap));
+      emit(SettingsUpdated(hive.groceryCategoriesMap, hive.recipeCategoriesMap,
+          hive.genericCategoriesMap));
+    });
+    on<SettingsImportedCategory>((event, emit) {
+      emit(SettingsUpdated(hive.groceryCategoriesMap, hive.recipeCategoriesMap,
+          hive.genericCategoriesMap));
     });
   }
 }

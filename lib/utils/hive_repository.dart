@@ -1,8 +1,15 @@
+import 'dart:io';
+
+import 'package:archive/archive_io.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:meal_planning/models/grocery_item.dart';
 import 'package:meal_planning/models/recipe.dart';
 import 'package:meal_planning/utils/datetime_ext.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:sizer/sizer.dart';
 
 enum CategoryType { grocery, recipe, generic }
 
@@ -421,6 +428,117 @@ class HiveRepository {
 
     for (String category in updatedRecipe.categories) {
       recipeCategoriesToRecipeTitlesMap[category]!.add(updatedRecipe.title);
+    }
+  }
+
+  // Create a backup of current data and import data from the selected zip file
+  Future<bool> importFile(bool isAndroid) async {
+    // Get the paths to each of the box files
+    String firstBoxPath = recipesBox.path!;
+    String secondBoxPath = mealPlanningBox.path!;
+
+    // If any data is present in the app, export a backup for the user
+    if (mealPlanningBox.isNotEmpty || recipesBox.isNotEmpty) {
+      // Get a directory to export to
+      String? selectedDirectory = isAndroid
+          ? (await getExternalStorageDirectory())?.path
+          : (await getApplicationDocumentsDirectory()).path;
+
+      if (selectedDirectory == null) {
+        return false;
+      }
+
+      // Create a zip file
+      var encoder = ZipFileEncoder();
+      encoder.create("$selectedDirectory/back_up_meal_planning.zip");
+
+      // Close the hives first
+      await recipesBox.close();
+      await mealPlanningBox.close();
+
+      // Add the box files to the zip
+      encoder.addFile((File(firstBoxPath)));
+      encoder.addFile((File(secondBoxPath)));
+      encoder.close();
+
+      // Re-open the boxes
+      recipesBox = await Hive.openBox<Recipe>('recipesBox');
+      mealPlanningBox = await Hive.openBox<dynamic>('mealPlanningBox');
+    }
+
+    // Get the user to pick a zip file
+    FilePicker.platform.clearTemporaryFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        dialogTitle: "Choose zip file",
+        type: FileType.custom,
+        allowedExtensions: ['zip']);
+
+    if (result != null) {
+      await recipesBox.close();
+      await mealPlanningBox.close();
+
+      final inputStream = InputFileStream(result.files.single.path!);
+      final archive = ZipDecoder().decodeBuffer(inputStream);
+
+      // For all of the entries in the archive
+      final firstStream = OutputFileStream(firstBoxPath);
+      final secondStream = OutputFileStream(secondBoxPath);
+
+      // Ensure there are only 2 files in the zip
+      if (archive.files.length != 2) return false;
+
+      // If the files aren't hive files, not sure how to stop the user from inputting those
+      // Checking file names doesn't matter because a user can just rename their input files to contain the right strings and extensions
+      // Not sure what to do
+
+      for (int i = 0; i < 2; i++) {
+        if (archive.files[i].name.contains('recipes')) {
+          archive.files[i].writeContent(firstStream);
+          firstStream.close();
+        } else {
+          archive.files[i].writeContent(secondStream);
+          secondStream.close();
+        }
+      }
+
+      recipesBox = await Hive.openBox<Recipe>('recipesBox');
+      mealPlanningBox = await Hive.openBox<dynamic>('mealPlanningBox');
+
+      return true;
+    }
+    return false;
+  }
+
+  // Export the data in the app to a zip file
+  Future exportFile(bool isAndroid) async {
+    // Permission.storage.request();
+    // if (await Permission.storage.request().isGranted) {
+    //   {
+    String? selectedDirectory = isAndroid
+        ? (await getExternalStorageDirectory())?.path
+        : (await getApplicationDocumentsDirectory()).path;
+    if (selectedDirectory != null) {
+      var encoder = ZipFileEncoder();
+      encoder.create("$selectedDirectory/meal_planning.zip");
+      String firstBoxPath = recipesBox.path!;
+      String secondBoxPath = mealPlanningBox.path!;
+
+      await recipesBox.close();
+      await mealPlanningBox.close();
+
+      await encoder.addFile((File(firstBoxPath)));
+      await encoder.addFile((File(secondBoxPath)));
+      encoder.close();
+      Share.shareXFiles([
+        XFile("$selectedDirectory/meal_planning.zip", name: "meal_planning.zip")
+      ],
+          sharePositionOrigin: Rect.fromLTWH(0, 0, 100.w, 100.h / 2),
+          subject: 'Meal Planning backup file');
+
+      recipesBox = await Hive.openBox<Recipe>('recipesBox');
+      mealPlanningBox = await Hive.openBox<dynamic>('mealPlanningBox');
+
+      return selectedDirectory;
     }
   }
 }

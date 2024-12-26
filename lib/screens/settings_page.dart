@@ -1,9 +1,8 @@
-import 'dart:ui';
-
 import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/blocs/cubits.dart';
+import 'package:meal_planning/blocs/import_export_bloc.dart';
 import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/utils/centre.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
@@ -175,7 +174,102 @@ class SettingsPage extends StatelessWidget {
                           style: Centre.semiTitleText,
                         ),
                       ),
-                    ))
+                    )),
+                BlocListener<ImportExportBloc, ImportExportState>(
+                  listener: (context, state) {
+                    if (state is ImportFinished) {
+                      context
+                          .read<SettingsBloc>()
+                          .add(const SettingsImportedCategory());
+
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Centre.shadowbgColor,
+                        content: Text(
+                          'Import Success!',
+                          style: Centre.listText,
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ));
+                    } else if (state is ExportFinished) {}
+                  },
+                  child: GestureDetector(
+                      onTap: () async {
+                        if (Theme.of(context).platform == TargetPlatform.iOS) {
+                          context
+                              .read<ImportExportBloc>()
+                              .add(const ImportClicked(false));
+                        } else if (Theme.of(context).platform ==
+                            TargetPlatform.android) {
+                          context
+                              .read<ImportExportBloc>()
+                              .add(const ImportClicked(true));
+                        }
+                      },
+                      child: Container(
+                        decoration: ShapeDecoration(
+                          shadows: [
+                            BoxShadow(
+                              color: Centre.shadowbgColor,
+                              spreadRadius: 2,
+                              blurRadius: 7,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                          color: Centre.bgColor,
+                          shape: const RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10))),
+                        ),
+                        margin: EdgeInsets.symmetric(
+                            horizontal: 15.w, vertical: 2.h),
+                        height: 6.h,
+                        child: Center(
+                          child: Text(
+                            "Import from zip file",
+                            style: Centre.listText,
+                          ),
+                        ),
+                      )),
+                ),
+                GestureDetector(
+                    onTap: () {
+                      if (Theme.of(context).platform == TargetPlatform.iOS) {
+                        context
+                            .read<ImportExportBloc>()
+                            .add(const ExportClicked(false));
+                      } else if (Theme.of(context).platform ==
+                          TargetPlatform.android) {
+                        context
+                            .read<ImportExportBloc>()
+                            .add(const ExportClicked(true));
+                      }
+                    },
+                    child: Container(
+                      decoration: ShapeDecoration(
+                        shadows: [
+                          BoxShadow(
+                            color: Centre.shadowbgColor,
+                            spreadRadius: 2,
+                            blurRadius: 7,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                        color: Centre.bgColor,
+                        shape: const RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(10))),
+                      ),
+                      margin:
+                          EdgeInsets.symmetric(horizontal: 15.w, vertical: 2.h),
+                      height: 5.h,
+                      child: Center(
+                        child: Text(
+                          "Export to zip file",
+                          style: Centre.listText,
+                        ),
+                      ),
+                    )),
               ],
             );
           });

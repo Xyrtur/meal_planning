@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/blocs/all_recipes_bloc.dart';
+import 'package:meal_planning/blocs/import_export_bloc.dart';
 import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/blocs/weekly_planning_bloc.dart';
 import 'package:meal_planning/models/recipe.dart';
@@ -198,38 +199,47 @@ class WeeklyPlanningPage extends StatelessWidget {
         child: Scaffold(
             backgroundColor: Centre.bgColor,
             body: Stack(children: [
-              BlocConsumer<WeeklyPlanningBloc, WeeklyPlanningState>(
-                  listener: (_, state) {
-                if (state is WeeklyPlanningWeekRangeUpdated) {
-                  selectedWeekRange = state.selected;
-                }
-                if (state is WeeklyPlanningMealsUpdated) {
-                  mealsList = state.mealsList;
-                }
-              }, builder: (_, state) {
-                return MasonryGridView.count(
-                  padding: EdgeInsets.only(top: 13.h),
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 4.h,
-                  crossAxisSpacing: 1.w,
-                  itemCount: 9, // 7 days + a space widget to appear staggered
-                  itemBuilder: (_, index) {
-                    if (index == 1) {
-                      return SizedBox(height: 5.h);
-                    } else if (index == 8) {
-                      return SizedBox(height: 30.h);
-                    } else {
-                      index = index - 1 < 0 ? index : index - 1;
-                      return dayTile(
-                          dayTexts[index],
-                          mealsList[selectedWeekRange * 7 + index],
-                          selectedWeekRange * 7 + index,
-                          recipeTitlestoRecipeMap,
-                          context);
-                    }
-                  },
-                );
-              }),
+              BlocListener<ImportExportBloc, ImportExportState>(
+                listener: (context, state) {
+                  if (state is ImportFinished) {
+                    context
+                        .read<WeeklyPlanningBloc>()
+                        .add(const WeeklyPlanningImported());
+                  }
+                },
+                child: BlocConsumer<WeeklyPlanningBloc, WeeklyPlanningState>(
+                    listener: (_, state) {
+                  if (state is WeeklyPlanningWeekRangeUpdated) {
+                    selectedWeekRange = state.selected;
+                  }
+                  if (state is WeeklyPlanningMealsUpdated) {
+                    mealsList = state.mealsList;
+                  }
+                }, builder: (_, state) {
+                  return MasonryGridView.count(
+                    padding: EdgeInsets.only(top: 13.h),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 4.h,
+                    crossAxisSpacing: 1.w,
+                    itemCount: 9, // 7 days + a space widget to appear staggered
+                    itemBuilder: (_, index) {
+                      if (index == 1) {
+                        return SizedBox(height: 5.h);
+                      } else if (index == 8) {
+                        return SizedBox(height: 30.h);
+                      } else {
+                        index = index - 1 < 0 ? index : index - 1;
+                        return dayTile(
+                            dayTexts[index],
+                            mealsList[selectedWeekRange * 7 + index],
+                            selectedWeekRange * 7 + index,
+                            recipeTitlestoRecipeMap,
+                            context);
+                      }
+                    },
+                  );
+                }),
+              ),
               weekRangeHeader(context, currentWeekRanges),
             ])));
   }

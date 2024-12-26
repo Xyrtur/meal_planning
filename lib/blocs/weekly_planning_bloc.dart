@@ -11,6 +11,10 @@ class WeeklyPlanningWeekRangePressed extends WeeklyPlanningEvent {
   const WeeklyPlanningWeekRangePressed(this.selected);
 }
 
+class WeeklyPlanningImported extends WeeklyPlanningEvent {
+  const WeeklyPlanningImported();
+}
+
 class WeeklyPlanningUpdateMeal extends WeeklyPlanningEvent {
   final String selectedMeal;
   final int index;
@@ -53,6 +57,10 @@ class WeeklyPlanningBloc
 
     on<WeeklyPlanningUpdateMeal>((event, emit) {
       hive.updateWeeklyMeals(event.index, event.selectedMeal);
+      emit(WeeklyPlanningMealsUpdated(hive.weeklyMealsSplit));
+    });
+
+    on<WeeklyPlanningImported>((event, emit) {
       emit(WeeklyPlanningMealsUpdated(hive.weeklyMealsSplit));
     });
   }

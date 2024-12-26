@@ -3,6 +3,7 @@ import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:meal_planning/blocs/grocery_bloc.dart';
+import 'package:meal_planning/blocs/import_export_bloc.dart';
 import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/screens/landing_pageview.dart';
 import 'package:meal_planning/utils/centre.dart';
@@ -47,6 +48,10 @@ class _SplashScreenState extends State<SplashScreen>
                     BlocProvider<GroceryBloc>(
                       create: (_) =>
                           GroceryBloc(context.read<HiveRepository>()),
+                    ),
+                    BlocProvider<ImportExportBloc>(
+                      create: (context) =>
+                          ImportExportBloc(context.read<HiveRepository>()),
                     ),
                   ], child: const LandingPageView()),
                 );

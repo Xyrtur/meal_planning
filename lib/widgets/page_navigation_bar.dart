@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/blocs/cubits.dart';
+import 'package:meal_planning/blocs/import_export_bloc.dart';
 import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/screens/settings_page.dart';
 import 'package:meal_planning/utils/centre.dart';
@@ -72,7 +73,10 @@ class PageNavigationBar extends StatelessWidget {
                                   BlocProvider.value(
                                       value: context.read<SettingsBloc>()),
                                   BlocProvider(
-                                      create: (_) => SettingsEditingTextCubit())
+                                      create: (_) =>
+                                          SettingsEditingTextCubit()),
+                                  BlocProvider.value(
+                                      value: context.read<ImportExportBloc>()),
                                 ], child: SettingsPage())))
                         .then((_) {});
                   },
