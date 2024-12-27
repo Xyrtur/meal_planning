@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/screens/recipe_page.dart';
@@ -30,7 +32,10 @@ class GroceryDraggingItemCubit extends Cubit<List<dynamic>> {
   GroceryDraggingItemCubit() : super([null, null]);
   // int? draggingIndex, int? hoverIndex
 
-  void update({required int? draggingIndex, required int? hoveringIndex, required String? originCategory}) {
+  void update(
+      {required int? draggingIndex,
+      required int? hoveringIndex,
+      required String? originCategory}) {
     emit([draggingIndex, hoveringIndex, originCategory]);
   }
 }
@@ -82,42 +87,94 @@ class RecipeCategoriesSelectedCubit extends Cubit<List<String>> {
   }
 }
 
-class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeIngredientKeysCubit
+    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeIngredientKeysCubit(this.keys) : super(keys);
 
-  void addKey() {
-    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+  void add({required int numKeys, required int stepNumber}) {
     final newList = [...state];
-    newList.add(createdKey);
+    if (stepNumber == -1) {
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
+      newList.add(createdKey);
+    } else {
+      for (int i = 0; i < numKeys; i++) {
+        if (i == 0) {
+          GlobalKey<RecipeTextFieldState> createdKey =
+              GlobalKey<RecipeTextFieldState>();
+          newList[stepNumber] = createdKey;
+        } else {
+          GlobalKey<RecipeTextFieldState> createdKey =
+              GlobalKey<RecipeTextFieldState>();
+          newList.insert(stepNumber + i, createdKey);
+        }
+      }
+    }
     emit(newList);
-    // return createdKey;
   }
 
-  void deleteKey({required GlobalKey<RecipeTextFieldState> key}) {
+  void replaceList({required int numKeys}) {
+    final List<GlobalKey<RecipeTextFieldState>> newList = [];
+    for (int i = 0; i < numKeys; i++) {
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
+      newList.add(createdKey);
+    }
+
+    emit(newList);
+  }
+
+  void deleteKey({required int stepNumber}) {
     final newList = [...state];
-    assert(newList.remove(key));
+    newList.removeAt(stepNumber);
     emit(newList);
   }
 }
 
-class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeInstructionsKeysCubit
+    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeInstructionsKeysCubit(this.keys) : super(keys);
 
-  GlobalKey<RecipeTextFieldState> addKey() {
-    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+  void add({required int numKeys, required int stepNumber}) {
     final newList = [...state];
-    newList.add(createdKey);
+    if (stepNumber == -1) {
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
+      newList.add(createdKey);
+    } else {
+      for (int i = 0; i < numKeys; i++) {
+        if (i == 0) {
+          GlobalKey<RecipeTextFieldState> createdKey =
+              GlobalKey<RecipeTextFieldState>();
+          newList[stepNumber] = createdKey;
+        } else {
+          GlobalKey<RecipeTextFieldState> createdKey =
+              GlobalKey<RecipeTextFieldState>();
+          newList.insert(stepNumber + i, createdKey);
+        }
+      }
+    }
     emit(newList);
-    return createdKey;
   }
 
-  void deleteKey({required GlobalKey<RecipeTextFieldState> key}) {
+  void replaceList({required int numKeys}) {
+    final List<GlobalKey<RecipeTextFieldState>> newList = [];
+    for (int i = 0; i < numKeys; i++) {
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
+      newList.add(createdKey);
+    }
+
+    emit(newList);
+  }
+
+  void deleteKey({required int stepNumber}) {
     final newList = [...state];
-    assert(newList.remove(key));
+    newList.removeAt(stepNumber);
     emit(newList);
   }
 }
@@ -158,7 +215,11 @@ class InstructionsListCubit extends Cubit<List<String>> {
 
   void add({required String instruction, required int stepNumber}) {
     final newList = [...state];
-    newList.insert(stepNumber, instruction);
+    if (stepNumber == -1) {
+      newList.add(instruction);
+    } else {
+      newList.insert(stepNumber, instruction);
+    }
     emit(newList);
   }
 
@@ -168,9 +229,56 @@ class InstructionsListCubit extends Cubit<List<String>> {
     emit(newList);
   }
 
+  void replaceList({required List<String> newList}) {
+    emit(newList);
+  }
+
   void deleteKey({required int stepNumber}) {
     final newList = [...state];
     newList.removeAt(stepNumber);
     emit(newList);
+  }
+}
+
+class IngredientsListCubit extends Cubit<List<String>> {
+  final List<String> ingredientsList;
+  IngredientsListCubit(this.ingredientsList) : super(ingredientsList);
+
+  void add({required String ingredient, required int ingredientOrderNumber}) {
+    final newList = [...state];
+    if (ingredientOrderNumber == -1) {
+      newList.add(ingredient);
+    } else {
+      newList.insert(ingredientOrderNumber, ingredient);
+    }
+    emit(newList);
+  }
+
+  void replace(
+      {required String ingredient, required int ingredientOrderNumber}) {
+    final newList = [...state];
+    newList[ingredientOrderNumber] = ingredient;
+    emit(newList);
+  }
+
+  void replaceList({required List<String> newList}) {
+    emit(newList);
+  }
+
+  void deleteKey({required int ingredientOrderNumber}) {
+    final newList = [...state];
+    newList.removeAt(ingredientOrderNumber);
+    emit(newList);
+  }
+}
+
+enum PageSelected { weeklyPlanning, grocery, recipes }
+
+class NavbarCubit extends Cubit<PageSelected> {
+  final PageSelected page;
+  NavbarCubit(this.page) : super(page);
+
+  void changePage({required PageSelected page}) {
+    emit(page);
   }
 }

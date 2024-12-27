@@ -396,6 +396,7 @@ class HiveRepository {
 
   // Recipe page functions
   void addRecipe({required Recipe recipe}) {
+    print("adding!");
     recipesBox.add(recipe);
     recipeList.add(recipe);
     recipeTitlestoRecipeMap.addEntries({recipe.title: recipe}.entries);

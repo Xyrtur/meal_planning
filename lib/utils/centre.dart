@@ -46,4 +46,9 @@ class Centre {
       fontWeight: FontWeight.w400,
       fontSize: 15.sp,
       fontFamily: 'Raleway');
+  static final recipeText = TextStyle(
+      color: Colors.black,
+      fontWeight: FontWeight.w400,
+      fontSize: 14.sp,
+      fontFamily: 'Raleway');
 }

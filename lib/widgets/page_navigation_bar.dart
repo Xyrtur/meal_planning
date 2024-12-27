@@ -1,27 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:meal_planning/blocs/cubits.dart';
 import 'package:meal_planning/blocs/import_export_bloc.dart';
 import 'package:meal_planning/blocs/settings_bloc.dart';
 import 'package:meal_planning/screens/settings_page.dart';
 import 'package:meal_planning/utils/centre.dart';
-import 'package:meal_planning/utils/hive_repository.dart';
 import 'package:sizer/sizer.dart';
 
 class PageNavigationBar extends StatelessWidget {
   final PageController pageController;
   const PageNavigationBar({super.key, required this.pageController});
 
-  Widget pageNavButton({required int index, required IconData icon}) {
+  Widget pageNavButton(
+      {required PageSelected page,
+      required IconData icon,
+      required bool isSelected,
+      required BuildContext context}) {
     return GestureDetector(
         onTap: () {
-          pageController.animateToPage(index,
+          pageController.animateToPage(page.index,
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut);
+
+          context.read<NavbarCubit>().changePage(page: page);
         },
-        child: Icon(
-          icon,
-          size: 8.w,
+        child: Container(
+          decoration: BoxDecoration(
+              border: Border.all(
+                  width: 3,
+                  color: isSelected ? Centre.primaryColor : Colors.transparent),
+              borderRadius: const BorderRadius.all(Radius.circular(10))),
+          child: Padding(
+            padding: EdgeInsets.all(2.w),
+            child: Icon(
+              icon,
+              size: 6.w,
+            ),
+          ),
         ));
   }
 
@@ -53,17 +69,33 @@ class PageNavigationBar extends StatelessWidget {
                     shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(10))),
                   ),
-                  width: 60.w,
-                  padding: EdgeInsets.all(3.w),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      pageNavButton(index: 0, icon: Icons.first_page),
-                      pageNavButton(index: 1, icon: Icons.pages),
-                      pageNavButton(index: 2, icon: Icons.last_page),
-                    ],
-                  ),
+                  width: 55.w,
+                  padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.w),
+                  child: BlocBuilder<NavbarCubit, PageSelected>(
+                      builder: (_, pageSelected) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        pageNavButton(
+                            context: context,
+                            page: PageSelected.weeklyPlanning,
+                            isSelected:
+                                pageSelected == PageSelected.weeklyPlanning,
+                            icon: FontAwesomeIcons.plateWheat),
+                        pageNavButton(
+                            context: context,
+                            page: PageSelected.grocery,
+                            isSelected: pageSelected == PageSelected.grocery,
+                            icon: FontAwesomeIcons.cartShopping),
+                        pageNavButton(
+                            context: context,
+                            page: PageSelected.recipes,
+                            isSelected: pageSelected == PageSelected.recipes,
+                            icon: FontAwesomeIcons.filePen),
+                      ],
+                    );
+                  }),
                 ),
                 GestureDetector(
                   onTap: () {
