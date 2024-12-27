@@ -54,6 +54,9 @@ class _LandingPageViewState extends State<LandingPageView> {
         body: Stack(
           children: [
             PageView(
+              onPageChanged: (index) => context
+                  .read<NavbarCubit>()
+                  .changePage(page: PageSelected.values[index]),
               controller: controller,
               children: [
                 MultiBlocProvider(providers: [
