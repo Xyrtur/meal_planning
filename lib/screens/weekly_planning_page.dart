@@ -21,12 +21,10 @@ class WeeklyPlanningPage extends StatelessWidget {
   // This is updated every time a meal is chosen
   int indexToUpdate = 0;
 
-  Widget weekRangeHeader(
-      BuildContext context, List<DateTime> currentWeekRanges) {
+  Widget weekRangeHeader(BuildContext context, List<DateTime> currentWeekRanges) {
     // on initial on weekRangepressed, rebuild
     return BlocBuilder<WeeklyPlanningBloc, WeeklyPlanningState>(
-        buildWhen: (previous, current) =>
-            current is WeeklyPlanningWeekRangeUpdated,
+        buildWhen: (previous, current) => current is WeeklyPlanningWeekRangeUpdated,
         builder: (context, state) {
           int selected = state is WeeklyPlanningInitial
               ? state.initialSelected
@@ -42,8 +40,7 @@ class WeeklyPlanningPage extends StatelessWidget {
                 ),
               ],
               color: Centre.bgColor,
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10))),
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
             ),
             margin: EdgeInsets.only(left: 7.w, right: 7.w, top: 2.h),
             width: 86.w,
@@ -56,26 +53,18 @@ class WeeklyPlanningPage extends StatelessWidget {
                   GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
-                      context
-                          .read<WeeklyPlanningBloc>()
-                          .add(WeeklyPlanningWeekRangePressed(i));
+                      context.read<WeeklyPlanningBloc>().add(WeeklyPlanningWeekRangePressed(i));
                     },
                     child: Container(
                       width: (currentWeekRanges.length / 2 == 3 ? 26.5 : 40).w,
                       decoration: BoxDecoration(
-                        color: selected == i
-                            ? const Color.fromARGB(255, 218, 180, 197)
-                            : Colors.transparent,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(25)),
+                        color: selected == i ? const Color.fromARGB(255, 218, 180, 197) : Colors.transparent,
+                        borderRadius: const BorderRadius.all(Radius.circular(25)),
                       ),
                       child: Center(
                         child: Text(
                           "${currentWeekRanges[i * 2].day} - ${currentWeekRanges[i * 2 + 1].day}",
-                          style: TextStyle(
-                              fontSize:
-                                  (currentWeekRanges.length / 2 == 3 ? 1.7 : 2)
-                                      .h),
+                          style: TextStyle(fontSize: (currentWeekRanges.length / 2 == 3 ? 1.7 : 2).h),
                         ),
                       ),
                     ),
@@ -102,10 +91,9 @@ class WeeklyPlanningPage extends StatelessWidget {
             builder: (_) {
               return MultiBlocProvider(
                 providers: [
-                  BlocProvider<AllRecipesBloc>(
-                      create: (_) =>
-                          AllRecipesBloc(context.read<HiveRepository>())),
-                  BlocProvider.value(value: context.read<SettingsBloc>())
+                  BlocProvider<AllRecipesBloc>(create: (_) => AllRecipesBloc(context.read<HiveRepository>())),
+                  BlocProvider.value(value: context.read<SettingsBloc>()),
+                  BlocProvider.value(value: context.read<ImportExportBloc>())
                 ],
                 child: const ChooseRecipeDialog(),
               );
@@ -115,16 +103,10 @@ class WeeklyPlanningPage extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 0.5.h),
         height: 4.h,
         decoration: BoxDecoration(
-          color: mealName.isEmpty
-              ? const Color.fromARGB(255, 188, 188, 188)
-              : Color(context
-                      .read<SettingsBloc>()
-                      .state
-                      .recipeCategoriesMap[category] ??
-                  context
-                      .read<SettingsBloc>()
-                      .state
-                      .genericCategoriesMap[mealName]!),
+          color: mealName.isEmpty || category.isEmpty
+              ? const Color.fromARGB(255, 196, 199, 209)
+              : Color(context.read<SettingsBloc>().state.recipeCategoriesMap[category] ??
+                  context.read<SettingsBloc>().state.genericCategoriesMap[mealName]!),
           borderRadius: const BorderRadius.all(Radius.circular(25)),
           border: RDottedLineBorder.all(
             width: 1,
@@ -148,18 +130,12 @@ class WeeklyPlanningPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(dayText,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17.sp,
-                  color: Colors.black)),
+          Text(dayText, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17.sp, color: Colors.black)),
           for (int i = 0; i < 5; i++)
             mealTile(
                 mealName: mealsInDay[i],
                 mealsListIndex: mealsListDayIndex * 5 + i,
-                category:
-                    recipeTitlestoRecipeMap[mealsInDay[i]]?.categories.first ??
-                        "",
+                category: recipeTitlestoRecipeMap[mealsInDay[i]]?.categories.firstOrNull ?? "",
                 context: context)
         ],
       ),
@@ -168,32 +144,20 @@ class WeeklyPlanningPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    WeeklyPlanningInitial initialState =
-        context.read<WeeklyPlanningBloc>().state as WeeklyPlanningInitial;
+    WeeklyPlanningInitial initialState = context.read<WeeklyPlanningBloc>().state as WeeklyPlanningInitial;
     List<List<String>> mealsList = initialState.mealsList;
     int selectedWeekRange = initialState.initialSelected;
     List<DateTime> currentWeekRanges = initialState.currentWeekRanges;
-    Map<String, Recipe> recipeTitlestoRecipeMap =
-        initialState.recipeTitlestoRecipeMap;
+    Map<String, Recipe> recipeTitlestoRecipeMap = initialState.recipeTitlestoRecipeMap;
 
     mealChosen.addListener(() {
       if (mealChosen.value != null) {
-        context
-            .read<WeeklyPlanningBloc>()
-            .add(WeeklyPlanningUpdateMeal(mealChosen.value!, indexToUpdate));
+        context.read<WeeklyPlanningBloc>().add(WeeklyPlanningUpdateMeal(mealChosen.value!, indexToUpdate));
         mealChosen.value = null;
       }
     });
 
-    const List<String> dayTexts = [
-      "Mon",
-      "Tues",
-      "Wed",
-      "Thurs",
-      "Fri",
-      "Sat",
-      "Sun"
-    ];
+    const List<String> dayTexts = ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 
     return SafeArea(
         child: Scaffold(
@@ -202,13 +166,10 @@ class WeeklyPlanningPage extends StatelessWidget {
               BlocListener<ImportExportBloc, ImportExportState>(
                 listener: (context, state) {
                   if (state is ImportFinished) {
-                    context
-                        .read<WeeklyPlanningBloc>()
-                        .add(const WeeklyPlanningImported());
+                    context.read<WeeklyPlanningBloc>().add(const WeeklyPlanningImported());
                   }
                 },
-                child: BlocConsumer<WeeklyPlanningBloc, WeeklyPlanningState>(
-                    listener: (_, state) {
+                child: BlocConsumer<WeeklyPlanningBloc, WeeklyPlanningState>(listener: (_, state) {
                   if (state is WeeklyPlanningWeekRangeUpdated) {
                     selectedWeekRange = state.selected;
                   }
@@ -229,12 +190,8 @@ class WeeklyPlanningPage extends StatelessWidget {
                         return SizedBox(height: 30.h);
                       } else {
                         index = index - 1 < 0 ? index : index - 1;
-                        return dayTile(
-                            dayTexts[index],
-                            mealsList[selectedWeekRange * 7 + index],
-                            selectedWeekRange * 7 + index,
-                            recipeTitlestoRecipeMap,
-                            context);
+                        return dayTile(dayTexts[index], mealsList[selectedWeekRange * 7 + index],
+                            selectedWeekRange * 7 + index, recipeTitlestoRecipeMap, context);
                       }
                     },
                   );

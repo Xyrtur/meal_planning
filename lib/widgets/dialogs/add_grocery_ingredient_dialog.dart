@@ -120,7 +120,6 @@ class AddToGroceryListDialog extends StatelessWidget {
                                         context.read<GroceryBloc>().add(AddIngredient(details.data, category));
                                       }
                                     }, onWillAcceptWithDetails: (details) {
-                                      //TODO: change color
                                       return true;
                                     }, builder: (context, candidateData, rejectedData) {
                                       return Container(

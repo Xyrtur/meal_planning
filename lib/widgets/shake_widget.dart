@@ -32,11 +32,10 @@ class ShakeWidget extends StatefulWidget {
   final ShakeController controller;
 
   @override
-  _ShakeWidgetState createState() => _ShakeWidgetState();
+  ShakeWidgetState createState() => ShakeWidgetState();
 }
 
-class _ShakeWidgetState extends State<ShakeWidget>
-    with SingleTickerProviderStateMixin {
+class ShakeWidgetState extends State<ShakeWidget> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -70,8 +69,7 @@ class _ShakeWidgetState extends State<ShakeWidget>
   /// Create a sinusoidal curve that starts and ends at 0
   /// Oscillates with increasing amplitude to the middle and then decreasing
   /// amplitude to the end.
-  double _wave(double t) =>
-      sin(widget.oscillations * 2 * pi * t) * (1 - (2 * t - 1).abs());
+  double _wave(double t) => sin(widget.oscillations * 2 * pi * t) * (1 - (2 * t - 1).abs());
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(

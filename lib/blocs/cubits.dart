@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/screens/recipe_page.dart';
@@ -32,10 +30,7 @@ class GroceryDraggingItemCubit extends Cubit<List<dynamic>> {
   GroceryDraggingItemCubit() : super([null, null]);
   // int? draggingIndex, int? hoverIndex
 
-  void update(
-      {required int? draggingIndex,
-      required int? hoveringIndex,
-      required String? originCategory}) {
+  void update({required int? draggingIndex, required int? hoveringIndex, required String? originCategory}) {
     emit([draggingIndex, hoveringIndex, originCategory]);
   }
 }
@@ -87,8 +82,7 @@ class RecipeCategoriesSelectedCubit extends Cubit<List<String>> {
   }
 }
 
-class RecipeIngredientKeysCubit
-    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeIngredientKeysCubit(this.keys) : super(keys);
@@ -96,18 +90,15 @@ class RecipeIngredientKeysCubit
   void add({required int numKeys, required int stepNumber}) {
     final newList = [...state];
     if (stepNumber == -1) {
-      GlobalKey<RecipeTextFieldState> createdKey =
-          GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
       newList.add(createdKey);
     } else {
       for (int i = 0; i < numKeys; i++) {
         if (i == 0) {
-          GlobalKey<RecipeTextFieldState> createdKey =
-              GlobalKey<RecipeTextFieldState>();
+          GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
           newList[stepNumber] = createdKey;
         } else {
-          GlobalKey<RecipeTextFieldState> createdKey =
-              GlobalKey<RecipeTextFieldState>();
+          GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
           newList.insert(stepNumber + i, createdKey);
         }
       }
@@ -118,8 +109,7 @@ class RecipeIngredientKeysCubit
   void replaceList({required int numKeys}) {
     final List<GlobalKey<RecipeTextFieldState>> newList = [];
     for (int i = 0; i < numKeys; i++) {
-      GlobalKey<RecipeTextFieldState> createdKey =
-          GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
       newList.add(createdKey);
     }
 
@@ -133,8 +123,7 @@ class RecipeIngredientKeysCubit
   }
 }
 
-class RecipeInstructionsKeysCubit
-    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeInstructionsKeysCubit(this.keys) : super(keys);
@@ -142,18 +131,15 @@ class RecipeInstructionsKeysCubit
   void add({required int numKeys, required int stepNumber}) {
     final newList = [...state];
     if (stepNumber == -1) {
-      GlobalKey<RecipeTextFieldState> createdKey =
-          GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
       newList.add(createdKey);
     } else {
       for (int i = 0; i < numKeys; i++) {
         if (i == 0) {
-          GlobalKey<RecipeTextFieldState> createdKey =
-              GlobalKey<RecipeTextFieldState>();
+          GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
           newList[stepNumber] = createdKey;
         } else {
-          GlobalKey<RecipeTextFieldState> createdKey =
-              GlobalKey<RecipeTextFieldState>();
+          GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
           newList.insert(stepNumber + i, createdKey);
         }
       }
@@ -164,8 +150,7 @@ class RecipeInstructionsKeysCubit
   void replaceList({required int numKeys}) {
     final List<GlobalKey<RecipeTextFieldState>> newList = [];
     for (int i = 0; i < numKeys; i++) {
-      GlobalKey<RecipeTextFieldState> createdKey =
-          GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
       newList.add(createdKey);
     }
 
@@ -225,7 +210,11 @@ class InstructionsListCubit extends Cubit<List<String>> {
 
   void replace({required String instruction, required int stepNumber}) {
     final newList = [...state];
-    newList[stepNumber] = instruction;
+    if (newList.isEmpty) {
+      newList.add(instruction);
+    } else {
+      newList[stepNumber] = instruction;
+    }
     emit(newList);
   }
 
@@ -254,10 +243,13 @@ class IngredientsListCubit extends Cubit<List<String>> {
     emit(newList);
   }
 
-  void replace(
-      {required String ingredient, required int ingredientOrderNumber}) {
+  void replace({required String ingredient, required int ingredientOrderNumber}) {
     final newList = [...state];
-    newList[ingredientOrderNumber] = ingredient;
+    if (newList.isEmpty) {
+      newList.add(ingredient);
+    } else {
+      newList[ingredientOrderNumber] = ingredient;
+    }
     emit(newList);
   }
 

@@ -5,6 +5,7 @@ class Centre {
   static Color bgColor = const Color.fromARGB(255, 240, 229, 228);
   static Color primaryColor = const Color.fromARGB(255, 88, 105, 219);
   static Color shadowbgColor = const Color.fromARGB(255, 198, 191, 190);
+  static Color dialogBgColor = const Color.fromARGB(255, 219, 210, 209);
 
   static const List<Color> colors = [
     // First row
@@ -30,25 +31,13 @@ class Centre {
     Color.fromARGB(255, 255, 155, 133),
   ];
 
-  static final titleText = TextStyle(
-      color: Colors.black,
-      fontWeight: FontWeight.w400,
-      fontSize: 20.sp,
-      fontFamily: 'Raleway');
+  static final titleText =
+      TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 20.sp, fontFamily: 'Raleway');
 
-  static final semiTitleText = TextStyle(
-      color: Colors.black,
-      fontWeight: FontWeight.w400,
-      fontSize: 17.sp,
-      fontFamily: 'Raleway');
-  static final listText = TextStyle(
-      color: Colors.black,
-      fontWeight: FontWeight.w400,
-      fontSize: 15.sp,
-      fontFamily: 'Raleway');
-  static final recipeText = TextStyle(
-      color: Colors.black,
-      fontWeight: FontWeight.w400,
-      fontSize: 14.sp,
-      fontFamily: 'Raleway');
+  static final semiTitleText =
+      TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 17.sp, fontFamily: 'Raleway');
+  static final listText =
+      TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 15.sp, fontFamily: 'Raleway');
+  static final recipeText =
+      TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 14.sp, fontFamily: 'Raleway');
 }

@@ -15,9 +15,8 @@ class ChooseRecipeDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-        shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(20))),
-        backgroundColor: Centre.shadowbgColor,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+        backgroundColor: Centre.dialogBgColor,
         elevation: 0,
         content: SizedBox(
             height: 55.h,
@@ -29,14 +28,13 @@ class ChooseRecipeDialog extends StatelessWidget {
                 children: [
                   MultiBlocProvider(
                     providers: [
-                      BlocProvider(
-                          create: (_) => RecipeCategoriesSelectedCubit([])),
+                      BlocProvider(create: (_) => RecipeCategoriesSelectedCubit([])),
                       BlocProvider.value(value: context.read<SettingsBloc>())
                     ],
-                    child: WeeklyPlanningFilterArea(),
+                    child: const WeeklyPlanningFilterArea(),
                   ),
-                  GenericMealPicker(),
-                  RecipeSearchbar(),
+                  const GenericMealPicker(),
+                  const RecipeSearchbar(),
                   RecipeListview(isWeeklyPlanning: true)
                 ],
               ),
@@ -49,8 +47,7 @@ class WeeklyPlanningFilterArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RecipeCategoriesSelectedCubit, List<String>>(
-        builder: (anotherContext, categoriesSelected) {
+    return BlocBuilder<RecipeCategoriesSelectedCubit, List<String>>(builder: (anotherContext, categoriesSelected) {
       return Wrap(
         alignment: WrapAlignment.start,
         spacing: 2.w,
@@ -64,17 +61,10 @@ class WeeklyPlanningFilterArea extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(vertical: 0.5.h, horizontal: 4.w),
               decoration: BoxDecoration(
-                color: Color(context
-                        .read<SettingsBloc>()
-                        .state
-                        .recipeCategoriesMap[category]!)
-                    .withAlpha(100),
+                color: Color(context.read<SettingsBloc>().state.recipeCategoriesMap[category]!).withAlpha(100),
                 borderRadius: const BorderRadius.all(Radius.circular(25)),
                 border: Border.all(
-                  color: Color(context
-                      .read<SettingsBloc>()
-                      .state
-                      .recipeCategoriesMap[category]!),
+                  color: Color(context.read<SettingsBloc>().state.recipeCategoriesMap[category]!),
                   width: 0.5.w,
                 ),
               ),
@@ -95,8 +85,7 @@ class WeeklyPlanningFilterArea extends StatelessWidget {
                       body: MultiBlocProvider(
                         providers: [
                           BlocProvider.value(
-                            value:
-                                context.read<RecipeCategoriesSelectedCubit>(),
+                            value: context.read<RecipeCategoriesSelectedCubit>(),
                           ),
                           BlocProvider.value(
                             value: context.read<AllRecipesBloc>(),
@@ -104,10 +93,7 @@ class WeeklyPlanningFilterArea extends StatelessWidget {
                         ],
                         child: FilterCategoryDialog(
                             isWeeklyPlanning: true,
-                            categoriesMap: context
-                                .read<SettingsBloc>()
-                                .state
-                                .recipeCategoriesMap),
+                            categoriesMap: context.read<SettingsBloc>().state.recipeCategoriesMap),
                       )),
                 ),
               );
@@ -124,8 +110,7 @@ class WeeklyPlanningFilterArea extends StatelessWidget {
                     ),
                   ],
                   color: Centre.bgColor,
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(20))),
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                 ),
                 child: const Icon(Icons.add)),
           )
@@ -140,8 +125,7 @@ class GenericMealPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Map<String, int> genericCategoriesMap =
-        context.read<SettingsBloc>().state.genericCategoriesMap;
+    Map<String, int> genericCategoriesMap = context.read<SettingsBloc>().state.genericCategoriesMap;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -157,11 +141,9 @@ class GenericMealPicker extends StatelessWidget {
                   Navigator.pop(context, category);
                 },
                 child: Container(
-                  padding:
-                      EdgeInsets.symmetric(vertical: 0.5.h, horizontal: 4.w),
+                  padding: EdgeInsets.symmetric(vertical: 0.5.h, horizontal: 4.w),
                   decoration: BoxDecoration(
-                    color:
-                        Color(genericCategoriesMap[category]!).withAlpha(100),
+                    color: Color(genericCategoriesMap[category]!).withAlpha(150),
                     borderRadius: const BorderRadius.all(Radius.circular(25)),
                     border: Border.all(
                       color: Color(genericCategoriesMap[category]!),

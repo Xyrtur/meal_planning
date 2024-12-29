@@ -4,7 +4,6 @@ import 'package:meal_planning/blocs/cubits.dart';
 import 'package:meal_planning/blocs/grocery_bloc.dart';
 import 'package:meal_planning/models/grocery_item.dart';
 import 'package:meal_planning/utils/centre.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:sizer/sizer.dart';
 
 class GroceryAddEntry extends StatefulWidget {
@@ -15,8 +14,7 @@ class GroceryAddEntry extends StatefulWidget {
   State<GroceryAddEntry> createState() => GroceryAddEntryState();
 }
 
-class GroceryAddEntryState extends State<GroceryAddEntry>
-    with TickerProviderStateMixin {
+class GroceryAddEntryState extends State<GroceryAddEntry> with TickerProviderStateMixin {
   late final AnimationController animController;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TextEditingController controller = TextEditingController();
@@ -88,8 +86,7 @@ class GroceryAddEntryState extends State<GroceryAddEntry>
                     behavior: HitTestBehavior.translucent,
                     onTap: () {
                       if (formKey.currentState!.validate()) {
-                        context.read<GroceryBloc>().add(
-                            AddIngredient(controller.text, widget.category));
+                        context.read<GroceryBloc>().add(AddIngredient(controller.text, widget.category));
                         context.read<GroceryAddEntryCubit>().update("");
                       }
                     },
@@ -117,8 +114,7 @@ class GroceryAddEntryState extends State<GroceryAddEntry>
                       decoration: InputDecoration(
                         errorStyle: const TextStyle(height: 0.5),
                         hintText: "Ingredient name",
-                        hintStyle:
-                            Centre.listText.copyWith(color: Colors.blueGrey),
+                        hintStyle: Centre.listText.copyWith(color: Colors.blueGrey),
                         isDense: true,
                       ),
                       controller: controller,
@@ -146,19 +142,22 @@ Widget draggableItemEntry(
       category: [item]
     },
     onDragStarted: () {
-      context.read<GroceryDraggingItemCubit>().update(
-          draggingIndex: index, hoveringIndex: index, originCategory: category);
+      context
+          .read<GroceryDraggingItemCubit>()
+          .update(draggingIndex: index, hoveringIndex: index, originCategory: category);
     },
     onDragCompleted: () {
-      context.read<GroceryDraggingItemCubit>().update(
-          draggingIndex: null, hoveringIndex: null, originCategory: category);
+      context
+          .read<GroceryDraggingItemCubit>()
+          .update(draggingIndex: null, hoveringIndex: null, originCategory: category);
     },
     onDraggableCanceled: (velocity, offset) {
-      context.read<GroceryDraggingItemCubit>().update(
-          draggingIndex: null, hoveringIndex: null, originCategory: category);
+      context
+          .read<GroceryDraggingItemCubit>()
+          .update(draggingIndex: null, hoveringIndex: null, originCategory: category);
     },
     feedback: Material(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
+      borderRadius: const BorderRadius.all(Radius.circular(8)),
       color: const Color.fromARGB(175, 143, 177, 236),
       child: itemEntry(
           draggingIndex: draggingIndex,
@@ -172,28 +171,26 @@ Widget draggableItemEntry(
     child: DragTarget<Map<String, List<GroceryItem>>>(
       onWillAcceptWithDetails: (data) {
         if (data.data.keys.first != category) {
-          context.read<GroceryDraggingItemCubit>().update(
-              draggingIndex: draggingIndex,
-              hoveringIndex: null,
-              originCategory: category);
+          context
+              .read<GroceryDraggingItemCubit>()
+              .update(draggingIndex: draggingIndex, hoveringIndex: null, originCategory: category);
           return false;
         }
-        context.read<GroceryDraggingItemCubit>().update(
-            draggingIndex: draggingIndex,
-            hoveringIndex: index,
-            originCategory: category);
+        context
+            .read<GroceryDraggingItemCubit>()
+            .update(draggingIndex: draggingIndex, hoveringIndex: index, originCategory: category);
         return data.data.values.first.first != item;
       },
       onAcceptWithDetails: (data) {
-        context.read<GroceryDraggingItemCubit>().update(
-            draggingIndex: null, hoveringIndex: null, originCategory: category);
+        context
+            .read<GroceryDraggingItemCubit>()
+            .update(draggingIndex: null, hoveringIndex: null, originCategory: category);
         onReorder(data.data.values.first.first);
       },
       onLeave: (data) {
-        context.read<GroceryDraggingItemCubit>().update(
-            draggingIndex: draggingIndex,
-            hoveringIndex: null,
-            originCategory: category);
+        context
+            .read<GroceryDraggingItemCubit>()
+            .update(draggingIndex: draggingIndex, hoveringIndex: null, originCategory: category);
       },
       builder: (context, candidateData, rejectedData) {
         return hoveringIndex == null && draggingIndex == null
@@ -220,8 +217,7 @@ Widget draggableItemEntry(
                                     : 5.h
                                 : 0,
                             0)
-                        : (hoveringIndex != null &&
-                                (draggingIndex! < hoveringIndex))
+                        : (hoveringIndex != null && (draggingIndex! < hoveringIndex))
                             ? Matrix4.translationValues(
                                 0,
                                 (index <= hoveringIndex)
@@ -265,15 +261,11 @@ Widget itemEntry(
                 GestureDetector(
                     onTap: () {
                       if (inDeleteMode) {
-                        context
-                            .read<GroceryBloc>()
-                            .add(DeleteIngredients(items: {
+                        context.read<GroceryBloc>().add(DeleteIngredients(items: {
                               category: [item]
                             }, clearAll: false));
                       } else {
-                        context.read<GroceryBloc>().add(
-                            UpdateIngredientsChecked(
-                                !item.isChecked, index, category));
+                        context.read<GroceryBloc>().add(UpdateIngredientsChecked(!item.isChecked, index, category));
                       }
                     },
                     child: inDeleteMode
@@ -285,17 +277,12 @@ Widget itemEntry(
                   child: GestureDetector(
                     onTap: () {
                       if (!inDeleteMode) {
-                        context.read<GroceryBloc>().add(
-                            UpdateIngredientsChecked(
-                                !item.isChecked, index, category));
+                        context.read<GroceryBloc>().add(UpdateIngredientsChecked(!item.isChecked, index, category));
                       }
                     },
                     child: Text(
                       item.name,
-                      style: Centre.listText.copyWith(
-                          decoration: item.isChecked
-                              ? TextDecoration.lineThrough
-                              : null),
+                      style: Centre.listText.copyWith(decoration: item.isChecked ? TextDecoration.lineThrough : null),
                     ),
                   ),
                 ),

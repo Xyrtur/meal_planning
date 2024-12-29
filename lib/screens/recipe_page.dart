@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -21,8 +19,7 @@ class RecipePage extends StatelessWidget {
   final ShakeController _shakeController = ShakeController();
   final List<String> existingRecipeTitles;
   final GlobalKey<RecipeTextFieldState> titleKey;
-  RecipePage(
-      {super.key, required this.existingRecipeTitles, required this.titleKey});
+  RecipePage({super.key, required this.existingRecipeTitles, required this.titleKey});
   // List of keys will let us validate all their controllers at once when user is finished editing
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final ValueNotifier<bool?> deletingRecipe = ValueNotifier<bool?>(false);
@@ -41,8 +38,7 @@ class RecipePage extends StatelessWidget {
       backgroundColor: Centre.bgColor,
       body: BlocBuilder<RecipeBloc, RecipeState>(builder: (_, state) {
         List<String> ingredients = state.recipe?.ingredients.split('\n') ?? [];
-        List<String> instructions =
-            state.recipe?.instructions.split('\n') ?? [];
+        List<String> instructions = state.recipe?.instructions.split('\n') ?? [];
 
         return Form(
           key: formKey,
@@ -78,17 +74,14 @@ class RecipePage extends StatelessWidget {
                               : Expanded(
                                   child: RecipeTextField(
                                     key: titleKey,
-                                    text:
-                                        (state as EditingRecipe).recipe?.title,
+                                    text: (state as EditingRecipe).recipe?.title,
                                     existingTitles: existingRecipeTitles,
                                   ),
                                 ),
                           state is ViewingRecipe
                               ? GestureDetector(
                                   onTap: () {
-                                    context
-                                        .read<RecipeBloc>()
-                                        .add(EditRecipeClicked(state.recipe));
+                                    context.read<RecipeBloc>().add(EditRecipeClicked(state.recipe));
                                   },
                                   child: Container(
                                     padding: EdgeInsets.all(3.w),
@@ -99,83 +92,44 @@ class RecipePage extends StatelessWidget {
                                   onTap: () {
                                     // Validate all the textfields
                                     if (formKey.currentState!.validate()) {
-                                      List<String> newIngredients = List.from(
-                                          context
-                                              .read<RecipeIngredientKeysCubit>()
-                                              .state
-                                              .map((key) => key.currentState!
-                                                  .controller.text));
-                                      List<String> newInstructions = List.from(
-                                          context
-                                              .read<
-                                                  RecipeInstructionsKeysCubit>()
-                                              .state
-                                              .map((key) => key.currentState!
-                                                  .controller.text));
+                                      List<String> newIngredients = List.from(context
+                                          .read<RecipeIngredientKeysCubit>()
+                                          .state
+                                          .map((key) => key.currentState!.controller.text));
+                                      List<String> newInstructions = List.from(context
+                                          .read<RecipeInstructionsKeysCubit>()
+                                          .state
+                                          .map((key) => key.currentState!.controller.text));
 
-                                      if ((state as EditingRecipe).recipe ==
-                                          null) {
+                                      if ((state as EditingRecipe).recipe == null) {
                                         Recipe recipe = Recipe(
-                                            title: titleKey
-                                                .currentState!.controller.text,
-                                            ingredients:
-                                                newIngredients.join("\n"),
-                                            instructions:
-                                                newInstructions.join("\n"),
-                                            categories: context
-                                                .read<
-                                                    RecipeCategoriesSelectedCubit>()
-                                                .state);
-                                        context
-                                            .read<InstructionsListCubit>()
-                                            .replaceList(
-                                                newList: newInstructions);
+                                            title: titleKey.currentState!.controller.text,
+                                            ingredients: newIngredients.join("\n"),
+                                            instructions: newInstructions.join("\n"),
+                                            categories: context.read<RecipeCategoriesSelectedCubit>().state);
+                                        context.read<InstructionsListCubit>().replaceList(newList: newInstructions);
                                         context
                                             .read<RecipeInstructionsKeysCubit>()
-                                            .replaceList(
-                                                numKeys:
-                                                    newInstructions.length);
-                                        context
-                                            .read<IngredientsListCubit>()
-                                            .replaceList(
-                                                newList: newIngredients);
+                                            .replaceList(numKeys: newInstructions.length);
+                                        context.read<IngredientsListCubit>().replaceList(newList: newIngredients);
                                         context
                                             .read<RecipeIngredientKeysCubit>()
-                                            .replaceList(
-                                                numKeys: newIngredients.length);
-                                        context
-                                            .read<RecipeBloc>()
-                                            .add(AddRecipe(recipe));
-                                        context
-                                            .read<AllRecipesBloc>()
-                                            .add(const RecipeAddDeleted());
+                                            .replaceList(numKeys: newIngredients.length);
+                                        context.read<RecipeBloc>().add(AddRecipe(recipe));
+                                        context.read<AllRecipesBloc>().add(const RecipeAddDeleted());
                                       } else {
                                         Recipe recipe = state.recipe!;
                                         recipe.edit(
-                                            title: titleKey
-                                                .currentState!.controller.text,
-                                            ingredients:
-                                                newIngredients.join("\n"),
-                                            instructions:
-                                                newInstructions.join("\n"),
-                                            categories: context
-                                                .read<
-                                                    RecipeCategoriesSelectedCubit>()
-                                                .state);
-                                        context
-                                            .read<InstructionsListCubit>()
-                                            .replaceList(
-                                                newList: newInstructions);
+                                            title: titleKey.currentState!.controller.text,
+                                            ingredients: newIngredients.join("\n"),
+                                            instructions: newInstructions.join("\n"),
+                                            categories: context.read<RecipeCategoriesSelectedCubit>().state);
+                                        context.read<InstructionsListCubit>().replaceList(newList: newInstructions);
                                         context
                                             .read<RecipeIngredientKeysCubit>()
-                                            .replaceList(
-                                                numKeys: newIngredients.length);
-                                        context.read<RecipeBloc>().add(
-                                            UpdateRecipe(
-                                                state.recipe!, recipe));
-                                        context
-                                            .read<AllRecipesBloc>()
-                                            .add(const RecipeAddDeleted());
+                                            .replaceList(numKeys: newIngredients.length);
+                                        context.read<RecipeBloc>().add(UpdateRecipe(state.recipe!, recipe));
+                                        context.read<AllRecipesBloc>().add(const RecipeAddDeleted());
                                       }
                                     } else {
                                       _shakeController.shake();
@@ -188,17 +142,14 @@ class RecipePage extends StatelessWidget {
                           state.recipe != null
                               ? GestureDetector(
                                   onTap: () async {
-                                    deletingRecipe.value =
-                                        await showDialog<bool>(
-                                            context: context,
-                                            builder: (_) {
-                                              return BlocProvider.value(
-                                                value:
-                                                    context.read<RecipeBloc>(),
-                                                child: DeleteConfirmationDialog(
-                                                    recipe: state.recipe!),
-                                              );
-                                            });
+                                    deletingRecipe.value = await showDialog<bool>(
+                                        context: context,
+                                        builder: (_) {
+                                          return BlocProvider.value(
+                                            value: context.read<RecipeBloc>(),
+                                            child: DeleteConfirmationDialog(recipe: state.recipe!),
+                                          );
+                                        });
                                   },
                                   child: Container(
                                       padding: EdgeInsets.all(3.w),
@@ -222,21 +173,13 @@ class RecipePage extends StatelessWidget {
                           children: [
                             for (String category in categoriesSelected)
                               Container(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 0.5.h, horizontal: 4.w),
+                                padding: EdgeInsets.symmetric(vertical: 0.5.h, horizontal: 4.w),
                                 decoration: BoxDecoration(
-                                  color: Color(context
-                                          .read<SettingsBloc>()
-                                          .state
-                                          .recipeCategoriesMap[category]!)
+                                  color: Color(context.read<SettingsBloc>().state.recipeCategoriesMap[category]!)
                                       .withAlpha(100),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(25)),
+                                  borderRadius: const BorderRadius.all(Radius.circular(25)),
                                   border: Border.all(
-                                    color: Color(context
-                                        .read<SettingsBloc>()
-                                        .state
-                                        .recipeCategoriesMap[category]!),
+                                    color: Color(context.read<SettingsBloc>().state.recipeCategoriesMap[category]!),
                                     width: 0.5.w,
                                   ),
                                 ),
@@ -251,29 +194,19 @@ class RecipePage extends StatelessWidget {
                                           targetAnchor: Alignment.bottomCenter,
                                           offset: Offset(25.w, 2.h),
                                           context: anotherContext,
-                                          builder:
-                                              (BuildContext dialogContext) =>
-                                                  GestureDetector(
-                                                    onTap: () => Navigator.pop(
-                                                        dialogContext),
-                                                    child: Scaffold(
-                                                      backgroundColor:
-                                                          Colors.transparent,
-                                                      body: BlocProvider<
-                                                          RecipeCategoriesSelectedCubit>.value(
-                                                        value: context.read<
-                                                            RecipeCategoriesSelectedCubit>(),
-                                                        child: FilterCategoryDialog(
-                                                            isWeeklyPlanning:
-                                                                false,
-                                                            categoriesMap: context
-                                                                .read<
-                                                                    SettingsBloc>()
-                                                                .state
-                                                                .recipeCategoriesMap),
-                                                      ),
-                                                    ),
-                                                  ));
+                                          builder: (BuildContext dialogContext) => GestureDetector(
+                                                onTap: () => Navigator.pop(dialogContext),
+                                                child: Scaffold(
+                                                  backgroundColor: Colors.transparent,
+                                                  body: BlocProvider<RecipeCategoriesSelectedCubit>.value(
+                                                    value: context.read<RecipeCategoriesSelectedCubit>(),
+                                                    child: FilterCategoryDialog(
+                                                        isWeeklyPlanning: false,
+                                                        categoriesMap:
+                                                            context.read<SettingsBloc>().state.recipeCategoriesMap),
+                                                  ),
+                                                ),
+                                              ));
                                     },
                                     child: Container(
                                         padding: EdgeInsets.all(2.w),
@@ -288,8 +221,7 @@ class RecipePage extends StatelessWidget {
                                           ],
                                           color: Centre.bgColor,
                                           shape: const RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(20))),
+                                              borderRadius: BorderRadius.all(Radius.circular(20))),
                                         ),
                                         child: const Icon(Icons.add)),
                                   )
@@ -306,76 +238,53 @@ class RecipePage extends StatelessWidget {
                       height: 0.5.h,
                       color: Centre.shadowbgColor,
                     ),
-                    BlocBuilder<RecipeIngredientKeysCubit,
-                            List<GlobalKey<RecipeTextFieldState>>>(
+                    BlocBuilder<RecipeIngredientKeysCubit, List<GlobalKey<RecipeTextFieldState>>>(
                         builder: (_, ingredientKeys) {
-                      List<String> editedIngredientsList =
-                          context.read<IngredientsListCubit>().state;
+                      List<String> editedIngredientsList = context.read<IngredientsListCubit>().state;
 
                       return SizedBox(
-                        height: ((state is ViewingRecipe
-                                        ? ingredients.length
-                                        : ingredientKeys.length + 1) /
-                                    2)
-                                .ceil() *
+                        height: ((state is ViewingRecipe ? ingredients.length : ingredientKeys.length + 1) / 2).ceil() *
                             (state is ViewingRecipe ? 6.5.h : 8.h),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: state is ViewingRecipe ? 6.w : 3.w,
-                              vertical: 2.h),
+                          padding: EdgeInsets.symmetric(horizontal: state is ViewingRecipe ? 6.w : 3.w, vertical: 2.h),
                           child: MasonryGridView.count(
                             crossAxisCount: 2,
                             crossAxisSpacing: 1.w,
                             mainAxisSpacing: 1.h,
-                            itemCount: (state is ViewingRecipe)
-                                ? ingredients.length
-                                : ingredientKeys.length + 1,
+                            itemCount: (state is ViewingRecipe) ? ingredients.length : ingredientKeys.length + 1,
                             physics: const NeverScrollableScrollPhysics(),
                             itemBuilder: (context, index) {
                               return index == ingredientKeys.length
                                   ? GestureDetector(
                                       onTap: () {
-                                        context
-                                            .read<RecipeIngredientKeysCubit>()
-                                            .add(stepNumber: -1, numKeys: 1);
+                                        context.read<RecipeIngredientKeysCubit>().add(stepNumber: -1, numKeys: 1);
                                         context
                                             .read<IngredientsListCubit>()
-                                            .add(
-                                                ingredientOrderNumber: -1,
-                                                ingredient: "");
+                                            .add(ingredientOrderNumber: -1, ingredient: "");
                                       },
                                       child: Container(
                                         padding: EdgeInsets.all(2.w),
                                         child: const Icon(Icons.add),
                                       ))
                                   : Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         state is ViewingRecipe
                                             ? const Text(
                                                 ' \u2022 ',
-                                                textHeightBehavior:
-                                                    TextHeightBehavior(
-                                                        applyHeightToFirstAscent:
-                                                            false,
-                                                        applyHeightToLastDescent:
-                                                            false),
+                                                textHeightBehavior: TextHeightBehavior(
+                                                    applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
                                               )
                                             : GestureDetector(
                                                 onTap: () {
                                                   context
-                                                      .read<
-                                                          RecipeIngredientKeysCubit>()
-                                                      .deleteKey(
-                                                          stepNumber: index);
+                                                      .read<RecipeIngredientKeysCubit>()
+                                                      .deleteKey(stepNumber: index);
                                                 },
-                                                behavior:
-                                                    HitTestBehavior.translucent,
+                                                behavior: HitTestBehavior.translucent,
                                                 child: Padding(
                                                   padding: EdgeInsets.all(2.w),
-                                                  child:
-                                                      const Icon(Icons.delete),
+                                                  child: const Icon(Icons.delete),
                                                 ),
                                               ),
                                         state is ViewingRecipe
@@ -391,17 +300,12 @@ class RecipePage extends StatelessWidget {
                                                 child: RecipeTextField(
                                                   key: ingredientKeys[index],
                                                   ingredientOrderNumber: index,
-                                                  type:
-                                                      TextFieldType.ingredient,
-                                                  text: editedIngredientsList
-                                                          .isEmpty
+                                                  type: TextFieldType.ingredient,
+                                                  text: editedIngredientsList.isEmpty
                                                       ? ""
-                                                      : index >=
-                                                              editedIngredientsList
-                                                                  .length
+                                                      : index >= editedIngredientsList.length
                                                           ? ""
-                                                          : editedIngredientsList[
-                                                              index],
+                                                          : editedIngredientsList[index],
                                                 ),
                                               )
                                       ],
@@ -423,25 +327,15 @@ class RecipePage extends StatelessWidget {
                                       builder: (_) {
                                         return MultiBlocProvider(
                                           providers: [
-                                            BlocProvider.value(
-                                                value: context
-                                                    .read<GroceryBloc>()),
-                                            BlocProvider.value(
-                                                value: context
-                                                    .read<SettingsBloc>()),
-                                            BlocProvider<
-                                                    IngredientsAlreadyDraggedCubit>(
-                                                create: (_) =>
-                                                    IngredientsAlreadyDraggedCubit()),
-                                            BlocProvider<
-                                                    MultiSelectIngredientsCubit>(
-                                                create: (_) =>
-                                                    MultiSelectIngredientsCubit())
+                                            BlocProvider.value(value: context.read<GroceryBloc>()),
+                                            BlocProvider.value(value: context.read<SettingsBloc>()),
+                                            BlocProvider<IngredientsAlreadyDraggedCubit>(
+                                                create: (_) => IngredientsAlreadyDraggedCubit()),
+                                            BlocProvider<MultiSelectIngredientsCubit>(
+                                                create: (_) => MultiSelectIngredientsCubit())
                                           ],
-                                          child: AddToGroceryListDialog(
-                                              ingredients: state
-                                                  .recipe.ingredients
-                                                  .split('\n')),
+                                          child:
+                                              AddToGroceryListDialog(ingredients: state.recipe.ingredients.split('\n')),
                                         );
                                       });
                                 },
@@ -457,30 +351,21 @@ class RecipePage extends StatelessWidget {
                       color: Centre.shadowbgColor,
                     ),
                     Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      child: BlocBuilder<RecipeInstructionsKeysCubit,
-                              List<GlobalKey<RecipeTextFieldState>>>(
+                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                      child: BlocBuilder<RecipeInstructionsKeysCubit, List<GlobalKey<RecipeTextFieldState>>>(
                           builder: (_, instructionsKeys) {
-                        List<String> editedInstructionsList =
-                            context.read<InstructionsListCubit>().state;
+                        List<String> editedInstructionsList = context.read<InstructionsListCubit>().state;
 
                         return Column(children: [
                           for (int i = 0;
-                              i <
-                                  ((state is ViewingRecipe)
-                                      ? instructions.length
-                                      : instructionsKeys.length);
+                              i < ((state is ViewingRecipe) ? instructions.length : instructionsKeys.length);
                               i++)
                             Row(
                               children: [
                                 state is EditingRecipe
                                     ? GestureDetector(
                                         onTap: () {
-                                          context
-                                              .read<
-                                                  RecipeInstructionsKeysCubit>()
-                                              .deleteKey(stepNumber: i);
+                                          context.read<RecipeInstructionsKeysCubit>().deleteKey(stepNumber: i);
                                         },
                                         behavior: HitTestBehavior.translucent,
                                         child: Padding(
@@ -505,9 +390,7 @@ class RecipePage extends StatelessWidget {
                                           key: instructionsKeys[i],
                                           stepNumber: i,
                                           type: TextFieldType.instruction,
-                                          text: instructions.isEmpty
-                                              ? ""
-                                              : editedInstructionsList[i],
+                                          text: editedInstructionsList.isEmpty ? "" : editedInstructionsList[i],
                                         ),
                                       )
                               ],
@@ -515,16 +398,11 @@ class RecipePage extends StatelessWidget {
                           state is EditingRecipe
                               ? GestureDetector(
                                   onTap: () {
-                                    context
-                                        .read<InstructionsListCubit>()
-                                        .add(instruction: "", stepNumber: -1);
-                                    context
-                                        .read<RecipeInstructionsKeysCubit>()
-                                        .add(stepNumber: -1, numKeys: 1);
+                                    context.read<InstructionsListCubit>().add(instruction: "", stepNumber: -1);
+                                    context.read<RecipeInstructionsKeysCubit>().add(stepNumber: -1, numKeys: 1);
                                   },
                                   child: Container(
-                                    padding:
-                                        EdgeInsets.fromLTRB(2.w, 3.h, 2.w, 8.h),
+                                    padding: EdgeInsets.fromLTRB(2.w, 3.h, 2.w, 8.h),
                                     child: const Icon(Icons.add),
                                   ))
                               : const SizedBox(),
@@ -551,12 +429,7 @@ class RecipeTextField extends StatefulWidget {
   final int? stepNumber;
   final int? ingredientOrderNumber;
   const RecipeTextField(
-      {super.key,
-      this.existingTitles,
-      this.text,
-      this.type,
-      this.stepNumber,
-      this.ingredientOrderNumber});
+      {super.key, this.existingTitles, this.text, this.type, this.stepNumber, this.ingredientOrderNumber});
 
   @override
   State<RecipeTextField> createState() => RecipeTextFieldState();
@@ -602,42 +475,40 @@ class RecipeTextFieldState extends State<RecipeTextField> {
           onPaste: () async {
             await editableTextState.pasteText(SelectionChangedCause.toolbar);
 
-            List<String> fields =
-                editableTextState.currentTextEditingValue.text.split('\n');
+            List<String> fields = editableTextState.currentTextEditingValue.text.split('\n');
             fields.removeWhere((value) => value.trim().isEmpty);
+
             if (widget.type == TextFieldType.ingredient) {
               if (context.mounted) {
                 for (int i = 0; i < fields.length; i++) {
                   if (i == 0) {
-                    context.read<IngredientsListCubit>().replace(
-                        ingredient: fields[0].trim(),
-                        ingredientOrderNumber: widget.ingredientOrderNumber!);
+                    context
+                        .read<IngredientsListCubit>()
+                        .replace(ingredient: fields[0].trim(), ingredientOrderNumber: widget.ingredientOrderNumber!);
                   } else {
-                    context.read<IngredientsListCubit>().add(
-                        ingredient: fields[i].trim(),
-                        ingredientOrderNumber:
-                            widget.ingredientOrderNumber! + i);
+                    context
+                        .read<IngredientsListCubit>()
+                        .add(ingredient: fields[i].trim(), ingredientOrderNumber: widget.ingredientOrderNumber! + i);
                   }
                 }
-                context.read<RecipeIngredientKeysCubit>().add(
-                    numKeys: fields.length,
-                    stepNumber: widget.ingredientOrderNumber!);
+                context
+                    .read<RecipeIngredientKeysCubit>()
+                    .add(numKeys: fields.length, stepNumber: widget.ingredientOrderNumber!);
               }
             } else if (widget.type == TextFieldType.instruction) {
               if (context.mounted) {
                 for (int i = 0; i < fields.length; i++) {
                   if (i == 0) {
-                    context.read<InstructionsListCubit>().replace(
-                        instruction: fields[0].trim(),
-                        stepNumber: widget.stepNumber!);
+                    context
+                        .read<InstructionsListCubit>()
+                        .replace(instruction: fields[0].trim(), stepNumber: widget.stepNumber!);
                   } else {
-                    context.read<InstructionsListCubit>().add(
-                        instruction: fields[i].trim(),
-                        stepNumber: widget.stepNumber! + i);
+                    context
+                        .read<InstructionsListCubit>()
+                        .add(instruction: fields[i].trim(), stepNumber: widget.stepNumber! + i);
                   }
                 }
-                context.read<RecipeInstructionsKeysCubit>().add(
-                    numKeys: fields.length, stepNumber: widget.stepNumber!);
+                context.read<RecipeInstructionsKeysCubit>().add(numKeys: fields.length, stepNumber: widget.stepNumber!);
               }
             }
           },
@@ -651,8 +522,7 @@ class RecipeTextFieldState extends State<RecipeTextField> {
           return 'Can\'t be empty';
         } else if (text.length > 50) {
           return 'Too long';
-        } else if ((widget.existingTitles?.contains(text) ?? false) &&
-            widget.text != text) {
+        } else if ((widget.existingTitles?.contains(text) ?? false) && widget.text != text) {
           return 'Title already exists';
         }
         return null;

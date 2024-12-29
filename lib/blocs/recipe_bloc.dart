@@ -39,6 +39,7 @@ sealed class RecipeState extends Equatable {
   List<Object> get props => [];
 }
 
+// ignore: must_be_immutable
 class ViewingRecipe extends RecipeState {
   @override
   covariant Recipe recipe;
