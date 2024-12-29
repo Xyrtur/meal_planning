@@ -24,8 +24,26 @@ class ChooseRecipeDialog extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 3.w),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context, ""),
+                    child: Container(
+                      width: 22.w,
+                      height: 3.h,
+                      margin: EdgeInsets.only(bottom: 2.w),
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 182, 44, 54),
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          "Clear meal",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
                   MultiBlocProvider(
                     providers: [
                       BlocProvider(create: (_) => RecipeCategoriesSelectedCubit([])),

@@ -469,9 +469,13 @@ class RecipeTextFieldState extends State<RecipeTextField> {
           clipboardStatus: ClipboardStatus.pasteable,
           // to apply the normal behavior when click on copy (copy in clipboard close toolbar)
           // use an empty function `() {}` to hide this option from the toolbar
-          onCopy: null,
+          onCopy: () {
+            editableTextState.copySelection(SelectionChangedCause.toolbar);
+          },
           // to apply the normal behavior when click on cut
-          onCut: null,
+          onCut: () {
+            editableTextState.cutSelection(SelectionChangedCause.toolbar);
+          },
           onPaste: () async {
             await editableTextState.pasteText(SelectionChangedCause.toolbar);
 
@@ -520,7 +524,7 @@ class RecipeTextFieldState extends State<RecipeTextField> {
       validator: (text) {
         if (text == null || text.isEmpty) {
           return 'Can\'t be empty';
-        } else if (text.length > 50) {
+        } else if (text.length > 300) {
           return 'Too long';
         } else if ((widget.existingTitles?.contains(text) ?? false) && widget.text != text) {
           return 'Title already exists';

@@ -13,10 +13,20 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:sizer/sizer.dart';
 
 // ignore: must_be_immutable
-class WeeklyPlanningPage extends StatelessWidget {
+class WeeklyPlanningPage extends StatefulWidget {
   WeeklyPlanningPage({super.key});
 
+  @override
+  State<WeeklyPlanningPage> createState() => _WeeklyPlanningPageState();
+}
+
+class _WeeklyPlanningPageState extends State<WeeklyPlanningPage> {
   final ValueNotifier<String?> mealChosen = ValueNotifier<String?>(null);
+  final List<String> dayTexts = ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
+  List<List<String>> mealsList = [];
+  int selectedWeekRange = 0;
+  List<DateTime> currentWeekRanges = [];
+  Map<String, Recipe> recipeTitlestoRecipeMap = {};
 
   // This is updated every time a meal is chosen
   int indexToUpdate = 0;
@@ -103,10 +113,12 @@ class WeeklyPlanningPage extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 0.5.h),
         height: 4.h,
         decoration: BoxDecoration(
-          color: mealName.isEmpty || category.isEmpty
+          color: mealName.isEmpty
               ? const Color.fromARGB(255, 196, 199, 209)
-              : Color(context.read<SettingsBloc>().state.recipeCategoriesMap[category] ??
-                  context.read<SettingsBloc>().state.genericCategoriesMap[mealName]!),
+              : category.isEmpty
+                  ? Color(context.read<SettingsBloc>().state.genericCategoriesMap[mealName] ??
+                      const Color.fromARGB(255, 196, 199, 209).value)
+                  : Color(context.read<SettingsBloc>().state.recipeCategoriesMap[category]!),
           borderRadius: const BorderRadius.all(Radius.circular(25)),
           border: RDottedLineBorder.all(
             width: 1,
@@ -143,12 +155,13 @@ class WeeklyPlanningPage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     WeeklyPlanningInitial initialState = context.read<WeeklyPlanningBloc>().state as WeeklyPlanningInitial;
-    List<List<String>> mealsList = initialState.mealsList;
-    int selectedWeekRange = initialState.initialSelected;
-    List<DateTime> currentWeekRanges = initialState.currentWeekRanges;
-    Map<String, Recipe> recipeTitlestoRecipeMap = initialState.recipeTitlestoRecipeMap;
+    mealsList = initialState.mealsList;
+    selectedWeekRange = initialState.initialSelected;
+    currentWeekRanges = initialState.currentWeekRanges;
+    recipeTitlestoRecipeMap = initialState.recipeTitlestoRecipeMap;
 
     mealChosen.addListener(() {
       if (mealChosen.value != null) {
@@ -156,9 +169,10 @@ class WeeklyPlanningPage extends StatelessWidget {
         mealChosen.value = null;
       }
     });
+  }
 
-    const List<String> dayTexts = ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
-
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
             backgroundColor: Centre.bgColor,
@@ -170,6 +184,7 @@ class WeeklyPlanningPage extends StatelessWidget {
                   }
                 },
                 child: BlocConsumer<WeeklyPlanningBloc, WeeklyPlanningState>(listener: (_, state) {
+                  if (state is WeeklyPlanningInitial) {}
                   if (state is WeeklyPlanningWeekRangeUpdated) {
                     selectedWeekRange = state.selected;
                   }

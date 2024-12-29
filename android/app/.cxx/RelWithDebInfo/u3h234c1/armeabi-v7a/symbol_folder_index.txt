@@ -1,0 +1,1 @@
+/home/tux/code/meal_planning/build/app/intermediates/cxx/RelWithDebInfo/u3h234c1/obj/armeabi-v7a
