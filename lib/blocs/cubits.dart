@@ -87,19 +87,19 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
 
   RecipeIngredientKeysCubit(this.keys) : super(keys);
 
-  void add({required int numKeys, required int stepNumber}) {
+  void add({required int numKeys, required int ingredientOrderNumber}) {
     final newList = [...state];
-    if (stepNumber == -1) {
+    if (ingredientOrderNumber == -1) {
       GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
       newList.add(createdKey);
     } else {
       for (int i = 0; i < numKeys; i++) {
         if (i == 0) {
           GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
-          newList[stepNumber] = createdKey;
+          newList[ingredientOrderNumber] = createdKey;
         } else {
           GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
-          newList.insert(stepNumber + i, createdKey);
+          newList.insert(ingredientOrderNumber + i, createdKey);
         }
       }
     }
@@ -116,9 +116,9 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
     emit(newList);
   }
 
-  void deleteKey({required int stepNumber}) {
+  void deleteKey({required int ingredientOrderNumber}) {
     final newList = [...state];
-    newList.removeAt(stepNumber);
+    newList.removeAt(ingredientOrderNumber);
     emit(newList);
   }
 }
@@ -222,7 +222,7 @@ class InstructionsListCubit extends Cubit<List<String>> {
     emit(newList);
   }
 
-  void deleteKey({required int stepNumber}) {
+  void delete({required int stepNumber}) {
     final newList = [...state];
     newList.removeAt(stepNumber);
     emit(newList);
@@ -257,7 +257,7 @@ class IngredientsListCubit extends Cubit<List<String>> {
     emit(newList);
   }
 
-  void deleteKey({required int ingredientOrderNumber}) {
+  void delete({required int ingredientOrderNumber}) {
     final newList = [...state];
     newList.removeAt(ingredientOrderNumber);
     emit(newList);

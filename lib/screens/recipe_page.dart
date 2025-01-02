@@ -243,11 +243,10 @@ class RecipePage extends StatelessWidget {
                       List<String> editedIngredientsList = context.read<IngredientsListCubit>().state;
 
                       return SizedBox(
-                        height: ((state is ViewingRecipe ? ingredients.length : ingredientKeys.length + 1) / 2).ceil() *
-                            (state is ViewingRecipe ? 6.5.h : 8.h),
                         child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: state is ViewingRecipe ? 6.w : 3.w, vertical: 2.h),
                           child: MasonryGridView.count(
+                            shrinkWrap: true,
                             crossAxisCount: 2,
                             crossAxisSpacing: 1.w,
                             mainAxisSpacing: 1.h,
@@ -257,7 +256,9 @@ class RecipePage extends StatelessWidget {
                               return index == ingredientKeys.length
                                   ? GestureDetector(
                                       onTap: () {
-                                        context.read<RecipeIngredientKeysCubit>().add(stepNumber: -1, numKeys: 1);
+                                        context
+                                            .read<RecipeIngredientKeysCubit>()
+                                            .add(ingredientOrderNumber: -1, numKeys: 1);
                                         context
                                             .read<IngredientsListCubit>()
                                             .add(ingredientOrderNumber: -1, ingredient: "");
@@ -279,7 +280,10 @@ class RecipePage extends StatelessWidget {
                                                 onTap: () {
                                                   context
                                                       .read<RecipeIngredientKeysCubit>()
-                                                      .deleteKey(stepNumber: index);
+                                                      .deleteKey(ingredientOrderNumber: index);
+                                                  context
+                                                      .read<IngredientsListCubit>()
+                                                      .delete(ingredientOrderNumber: index);
                                                 },
                                                 behavior: HitTestBehavior.translucent,
                                                 child: Padding(
@@ -366,6 +370,7 @@ class RecipePage extends StatelessWidget {
                                     ? GestureDetector(
                                         onTap: () {
                                           context.read<RecipeInstructionsKeysCubit>().deleteKey(stepNumber: i);
+                                          context.read<InstructionsListCubit>().delete(stepNumber: i);
                                         },
                                         behavior: HitTestBehavior.translucent,
                                         child: Padding(
@@ -390,7 +395,11 @@ class RecipePage extends StatelessWidget {
                                           key: instructionsKeys[i],
                                           stepNumber: i,
                                           type: TextFieldType.instruction,
-                                          text: editedInstructionsList.isEmpty ? "" : editedInstructionsList[i],
+                                          text: editedInstructionsList.isEmpty
+                                              ? ""
+                                              : i >= editedInstructionsList.length
+                                                  ? ""
+                                                  : editedInstructionsList[i],
                                         ),
                                       )
                               ],
@@ -398,8 +407,8 @@ class RecipePage extends StatelessWidget {
                           state is EditingRecipe
                               ? GestureDetector(
                                   onTap: () {
-                                    context.read<InstructionsListCubit>().add(instruction: "", stepNumber: -1);
                                     context.read<RecipeInstructionsKeysCubit>().add(stepNumber: -1, numKeys: 1);
+                                    context.read<InstructionsListCubit>().add(instruction: "", stepNumber: -1);
                                   },
                                   child: Container(
                                     padding: EdgeInsets.fromLTRB(2.w, 3.h, 2.w, 8.h),
@@ -497,7 +506,7 @@ class RecipeTextFieldState extends State<RecipeTextField> {
                 }
                 context
                     .read<RecipeIngredientKeysCubit>()
-                    .add(numKeys: fields.length, stepNumber: widget.ingredientOrderNumber!);
+                    .add(numKeys: fields.length, ingredientOrderNumber: widget.ingredientOrderNumber!);
               }
             } else if (widget.type == TextFieldType.instruction) {
               if (context.mounted) {

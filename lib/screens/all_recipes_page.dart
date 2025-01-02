@@ -57,10 +57,10 @@ class AllRecipesPage extends StatelessWidget {
                                     create: (_) => RecipeCategoriesSelectedCubit([]),
                                   ),
                                   BlocProvider<InstructionsListCubit>(
-                                    create: (_) => InstructionsListCubit([]),
+                                    create: (_) => InstructionsListCubit([""]),
                                   ),
                                   BlocProvider<IngredientsListCubit>(
-                                    create: (_) => IngredientsListCubit([]),
+                                    create: (_) => IngredientsListCubit([""]),
                                   ),
                                   BlocProvider.value(
                                     value: context.read<AllRecipesBloc>(),
