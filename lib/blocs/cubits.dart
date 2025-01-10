@@ -51,6 +51,14 @@ class GroceryCategoryHover extends Cubit<String> {
   }
 }
 
+class IngredientToGroceryCategoryHover extends Cubit<String> {
+  IngredientToGroceryCategoryHover() : super("");
+
+  void update({required String hoveredCategory}) {
+    emit(hoveredCategory);
+  }
+}
+
 class SettingsEditingTextCubit extends Cubit<List<String>> {
   SettingsEditingTextCubit() : super(["", ""]);
 
@@ -162,6 +170,13 @@ class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldSt
     newList.removeAt(stepNumber);
     emit(newList);
   }
+
+  void reorder({required int oldIndex, required int newIndex}) {
+    final newList = [...state];
+    final GlobalKey<RecipeTextFieldState> item = newList.removeAt(oldIndex);
+    newList.insert(newIndex, item);
+    emit(newList);
+  }
 }
 
 class IngredientsAlreadyDraggedCubit extends Cubit<List<String>> {
@@ -225,6 +240,13 @@ class InstructionsListCubit extends Cubit<List<String>> {
   void delete({required int stepNumber}) {
     final newList = [...state];
     newList.removeAt(stepNumber);
+    emit(newList);
+  }
+
+  void reorder({required int oldIndex, required int newIndex}) {
+    final newList = [...state];
+    final String item = newList.removeAt(oldIndex);
+    newList.insert(newIndex, item);
     emit(newList);
   }
 }

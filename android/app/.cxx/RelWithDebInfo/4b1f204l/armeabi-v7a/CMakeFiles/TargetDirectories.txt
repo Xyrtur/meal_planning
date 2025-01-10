@@ -1,0 +1,2 @@
+/home/tux/code/meal_planning/android/app/.cxx/RelWithDebInfo/4b1f204l/armeabi-v7a/CMakeFiles/edit_cache.dir
+/home/tux/code/meal_planning/android/app/.cxx/RelWithDebInfo/4b1f204l/armeabi-v7a/CMakeFiles/rebuild_cache.dir

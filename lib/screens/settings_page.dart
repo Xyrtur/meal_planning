@@ -24,72 +24,69 @@ class SettingsPage extends StatelessWidget {
     List<Widget> categoryList = [];
     categories.forEach((name, color) {
       categoryList.addAll([
-        Row(
-          children: [
-            BlocProvider<SettingsAddColorCubit>(
-                create: (context) => SettingsAddColorCubit(null),
-                child: ChooseColorBtn(
-                  type: type,
-                  color: color,
-                  name: name,
-                )),
-            editingName == null || editingName != name
-                ? GestureDetector(
-                    onTap: () {
-                      context
-                          .read<SettingsEditingTextCubit>()
-                          .editing(type: type.name, name: name);
-                    },
-                    child: Text(name))
-                : CategoryTextField(
-                    existingCategories: categories.keys.toList(),
-                    formKey: formKey,
-                    controller: editingController..text = name,
-                  ),
-            const Spacer(),
-            editingName == null || editingName != name
-                ? const SizedBox()
-                : GestureDetector(
-                    onTap: () {
-                      if (formKey.currentState!.validate()) {
-                        context.read<SettingsBloc>().add(SettingsUpdateCategory(
-                            type, name, editingController.text, null));
-                        editingController.clear();
-                        context
-                            .read<SettingsEditingTextCubit>()
-                            .editing(type: "", name: "");
-                      }
-                    },
-                    child: const SizedBox(
-                      child: Center(
-                        child: Icon(Icons.check),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 0.2.h),
+          child: Row(
+            children: [
+              BlocProvider<SettingsAddColorCubit>(
+                  create: (context) => SettingsAddColorCubit(null),
+                  child: ChooseColorBtn(
+                    type: type,
+                    color: color,
+                    name: name,
+                  )),
+              editingName == null || editingName != name
+                  ? GestureDetector(
+                      onTap: () {
+                        context.read<SettingsEditingTextCubit>().editing(type: type.name, name: name);
+                      },
+                      child: Text(
+                        name,
+                        style: Centre.ingredientText,
+                      ))
+                  : CategoryTextField(
+                      existingCategories: categories.keys.toList(),
+                      formKey: formKey,
+                      controller: editingController..text = name,
+                    ),
+              const Spacer(),
+              editingName == null || editingName != name
+                  ? const SizedBox()
+                  : GestureDetector(
+                      onTap: () {
+                        if (formKey.currentState!.validate()) {
+                          context
+                              .read<SettingsBloc>()
+                              .add(SettingsUpdateCategory(type, name, editingController.text, null));
+                          editingController.clear();
+                          context.read<SettingsEditingTextCubit>().editing(type: "", name: "");
+                        }
+                      },
+                      child: const SizedBox(
+                        child: Center(
+                          child: Icon(Icons.check),
+                        ),
                       ),
                     ),
-                  ),
-            name == "Other"
-                ? const SizedBox()
-                : GestureDetector(
-                    onTap: () {
-                      if (editingName == null || editingName != name) {
-                        context
-                            .read<SettingsBloc>()
-                            .add(SettingsDeleteCategory(type, name));
-                      } else {
-                        editingController.clear();
-                        context
-                            .read<SettingsEditingTextCubit>()
-                            .editing(type: "", name: "");
-                      }
-                    },
-                    child: SizedBox(
-                      child: Center(
-                        child: Icon(editingName == null || editingName != name
-                            ? Icons.delete
-                            : Icons.close),
+              name == "Other"
+                  ? const SizedBox()
+                  : GestureDetector(
+                      onTap: () {
+                        if (editingName == null || editingName != name) {
+                          context.read<SettingsBloc>().add(SettingsDeleteCategory(type, name));
+                        } else {
+                          editingController.clear();
+                          context.read<SettingsEditingTextCubit>().editing(type: "", name: "");
+                        }
+                      },
+                      child: SizedBox(
+                        child: Center(
+                          child: Icon(editingName == null || editingName != name ? Icons.delete : Icons.close),
+                        ),
                       ),
-                    ),
-                  )
-          ],
+                    )
+            ],
+          ),
         )
       ]);
     });
@@ -101,10 +98,12 @@ class SettingsPage extends StatelessWidget {
       ...categoryList,
       BlocProvider<SettingsAddColorCubit>(
           create: (_) => SettingsAddColorCubit(null),
-          child: AddCategoryTextField(
-              type: type, existingCategories: categories.keys.toList())),
-      const Divider(
-        color: Colors.grey,
+          child: AddCategoryTextField(type: type, existingCategories: categories.keys.toList())),
+      Padding(
+        padding: EdgeInsets.symmetric(vertical: 2.h),
+        child: const Divider(
+          color: Colors.grey,
+        ),
       )
     ];
   }
@@ -116,161 +115,157 @@ class SettingsPage extends StatelessWidget {
       backgroundColor: Centre.bgColor,
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 2.w),
-        child: BlocBuilder<SettingsEditingTextCubit, List<String>>(
-            builder: (context, editingState) {
-          return BlocBuilder<SettingsBloc, SettingsState>(
-              builder: (context, settingsState) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  "Settings",
-                  style: Centre.titleText,
-                ),
-                ...changeArea(
-                    context: context,
-                    type: CategoryType.grocery,
-                    categories: settingsState.groceryCategoriesMap,
-                    editingName: editingState[0] == CategoryType.grocery.name
-                        ? editingState[1]
-                        : null),
-                ...changeArea(
-                    context: context,
-                    type: CategoryType.recipe,
-                    categories: settingsState.recipeCategoriesMap,
-                    editingName: editingState[0] == CategoryType.recipe.name
-                        ? editingState[1]
-                        : null),
-                ...changeArea(
-                    context: context,
-                    type: CategoryType.generic,
-                    categories: settingsState.genericCategoriesMap,
-                    editingName: editingState[0] == CategoryType.generic.name
-                        ? editingState[1]
-                        : null),
-                GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      decoration: ShapeDecoration(
-                        shadows: [
-                          BoxShadow(
-                            color: Centre.shadowbgColor,
-                            spreadRadius: 2,
-                            blurRadius: 7,
-                            offset: const Offset(0, 3),
+        child: BlocBuilder<SettingsEditingTextCubit, List<String>>(builder: (context, editingState) {
+          return BlocBuilder<SettingsBloc, SettingsState>(builder: (context, settingsState) {
+            return SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 2.h, bottom: 1.h, left: 4.w),
+                      child: Text(
+                        "Settings",
+                        style: Centre.titleText,
+                      ),
+                    ),
+                    ...changeArea(
+                        context: context,
+                        type: CategoryType.grocery,
+                        categories: settingsState.groceryCategoriesMap,
+                        editingName: editingState[0] == CategoryType.grocery.name ? editingState[1] : null),
+                    ...changeArea(
+                        context: context,
+                        type: CategoryType.recipe,
+                        categories: settingsState.recipeCategoriesMap,
+                        editingName: editingState[0] == CategoryType.recipe.name ? editingState[1] : null),
+                    ...changeArea(
+                        context: context,
+                        type: CategoryType.generic,
+                        categories: settingsState.genericCategoriesMap,
+                        editingName: editingState[0] == CategoryType.generic.name ? editingState[1] : null),
+                    GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          decoration: ShapeDecoration(
+                            shadows: [
+                              BoxShadow(
+                                color: Centre.shadowbgColor,
+                                spreadRadius: 2,
+                                blurRadius: 7,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                            color: Centre.bgColor,
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                           ),
-                        ],
-                        color: Centre.bgColor,
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10))),
-                      ),
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 15.w, vertical: 2.h),
-                      height: 6.h,
-                      child: Center(
-                        child: Text(
-                          "Finish",
-                          style: Centre.semiTitleText,
-                        ),
-                      ),
-                    )),
-                BlocListener<ImportExportBloc, ImportExportState>(
-                  listener: (context, state) {
-                    if (state is ImportFinished) {
-                      context
-                          .read<SettingsBloc>()
-                          .add(const SettingsImportedCategory());
-
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: Centre.shadowbgColor,
-                        content: Text(
-                          'Import Success!',
-                          style: Centre.listText,
-                        ),
-                        duration: const Duration(seconds: 2),
-                      ));
-                    } else if (state is ExportFinished) {}
-                  },
-                  child: GestureDetector(
-                      onTap: () async {
-                        if (Theme.of(context).platform == TargetPlatform.iOS) {
-                          context
-                              .read<ImportExportBloc>()
-                              .add(const ImportClicked(false));
-                        } else if (Theme.of(context).platform ==
-                            TargetPlatform.android) {
-                          context
-                              .read<ImportExportBloc>()
-                              .add(const ImportClicked(true));
-                        }
-                      },
-                      child: Container(
-                        decoration: ShapeDecoration(
-                          shadows: [
-                            BoxShadow(
-                              color: Centre.shadowbgColor,
-                              spreadRadius: 2,
-                              blurRadius: 7,
-                              offset: const Offset(0, 3),
+                          margin: EdgeInsets.symmetric(horizontal: 15.w),
+                          height: 6.h,
+                          child: Center(
+                            child: Text(
+                              "Finish",
+                              style: Centre.semiTitleText,
                             ),
-                          ],
-                          color: Centre.bgColor,
-                          shape: const RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10))),
-                        ),
-                        margin: EdgeInsets.symmetric(
-                            horizontal: 15.w, vertical: 2.h),
-                        height: 6.h,
-                        child: Center(
-                          child: Text(
-                            "Import from zip file",
-                            style: Centre.listText,
                           ),
-                        ),
-                      )),
-                ),
-                GestureDetector(
-                    onTap: () {
-                      if (Theme.of(context).platform == TargetPlatform.iOS) {
-                        context
-                            .read<ImportExportBloc>()
-                            .add(const ExportClicked(false));
-                      } else if (Theme.of(context).platform ==
-                          TargetPlatform.android) {
-                        context
-                            .read<ImportExportBloc>()
-                            .add(const ExportClicked(true));
-                      }
-                    },
-                    child: Container(
-                      decoration: ShapeDecoration(
-                        shadows: [
-                          BoxShadow(
-                            color: Centre.shadowbgColor,
-                            spreadRadius: 2,
-                            blurRadius: 7,
-                            offset: const Offset(0, 3),
+                        )),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 2.h),
+                      child: Row(
+                        spacing: 5.w,
+                        children: [
+                          Expanded(
+                            child: BlocListener<ImportExportBloc, ImportExportState>(
+                              listener: (context, state) {
+                                if (state is ImportFinished) {
+                                  context.read<SettingsBloc>().add(const SettingsImportedCategory());
+
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: Centre.shadowbgColor,
+                                    content: Text(
+                                      'Import Success!',
+                                      style: Centre.listText,
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                  ));
+                                } else if (state is ExportFinished) {}
+                              },
+                              child: GestureDetector(
+                                  onTap: () async {
+                                    if (Theme.of(context).platform == TargetPlatform.iOS) {
+                                      context.read<ImportExportBloc>().add(const ImportClicked(false));
+                                    } else if (Theme.of(context).platform == TargetPlatform.android) {
+                                      context.read<ImportExportBloc>().add(const ImportClicked(true));
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 3.w),
+                                    decoration: ShapeDecoration(
+                                      shadows: [
+                                        BoxShadow(
+                                          color: Centre.shadowbgColor,
+                                          spreadRadius: 2,
+                                          blurRadius: 7,
+                                          offset: const Offset(0, 3),
+                                        ),
+                                      ],
+                                      color: Centre.bgColor,
+                                      shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                                    ),
+                                    height: 6.h,
+                                    child: Center(
+                                      child: Text(
+                                        "Import from zip file",
+                                        style: Centre.listText,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  )),
+                            ),
+                          ),
+                          Expanded(
+                            child: GestureDetector(
+                                onTap: () {
+                                  if (Theme.of(context).platform == TargetPlatform.iOS) {
+                                    context.read<ImportExportBloc>().add(const ExportClicked(false));
+                                  } else if (Theme.of(context).platform == TargetPlatform.android) {
+                                    context.read<ImportExportBloc>().add(const ExportClicked(true));
+                                  }
+                                },
+                                child: Container(
+                                  decoration: ShapeDecoration(
+                                    shadows: [
+                                      BoxShadow(
+                                        color: Centre.shadowbgColor,
+                                        spreadRadius: 2,
+                                        blurRadius: 7,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                    color: Centre.bgColor,
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10))),
+                                  ),
+                                  height: 5.h,
+                                  child: Center(
+                                    child: Text(
+                                      "Export to zip file",
+                                      style: Centre.listText,
+                                    ),
+                                  ),
+                                )),
                           ),
                         ],
-                        color: Centre.bgColor,
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10))),
                       ),
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 15.w, vertical: 2.h),
-                      height: 5.h,
-                      child: Center(
-                        child: Text(
-                          "Export to zip file",
-                          style: Centre.listText,
-                        ),
-                      ),
-                    )),
-              ],
+                    ),
+                    SizedBox(
+                      height: 6.h,
+                    )
+                  ],
+                ),
+              ),
             );
           });
         }),
@@ -283,8 +278,7 @@ class ChooseColorBtn extends StatelessWidget {
   final CategoryType type;
   final int? color;
   final String name;
-  const ChooseColorBtn(
-      {super.key, required this.type, required this.name, required this.color});
+  const ChooseColorBtn({super.key, required this.type, required this.name, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -300,19 +294,16 @@ class ChooseColorBtn extends StatelessWidget {
                 builder: (BuildContext dialogContext) => GestureDetector(
                     onTap: () {
                       if (context.read<SettingsAddColorCubit>().state != null) {
-                        context.read<SettingsBloc>().add(SettingsUpdateCategory(
-                            type,
-                            name,
-                            null,
-                            context.read<SettingsAddColorCubit>().state));
+                        context
+                            .read<SettingsBloc>()
+                            .add(SettingsUpdateCategory(type, name, null, context.read<SettingsAddColorCubit>().state));
                       }
                       Navigator.pop(dialogContext);
                     },
                     child: Scaffold(
                         backgroundColor: Colors.transparent,
                         body: BlocProvider<SettingsAddColorCubit>.value(
-                            value: context.read<SettingsAddColorCubit>(),
-                            child: const ChooseColorDialog()))));
+                            value: context.read<SettingsAddColorCubit>(), child: const ChooseColorDialog()))));
           },
           child: Container(
             margin: EdgeInsets.only(right: 2.w),
@@ -381,8 +372,7 @@ class _CategoryTextFieldState extends State<CategoryTextField> {
 class AddCategoryTextField extends StatefulWidget {
   final CategoryType type;
   final List<String> existingCategories;
-  const AddCategoryTextField(
-      {super.key, required this.existingCategories, required this.type});
+  const AddCategoryTextField({super.key, required this.existingCategories, required this.type});
 
   @override
   State<AddCategoryTextField> createState() => _AddCategoryTextFieldState();
@@ -446,8 +436,7 @@ class _AddCategoryTextFieldState extends State<AddCategoryTextField> {
                   return 'Too long';
                 } else if (widget.existingCategories.contains(text)) {
                   return 'Category already exists';
-                } else if (context.read<SettingsAddColorCubit>().state ==
-                    null) {
+                } else if (context.read<SettingsAddColorCubit>().state == null) {
                   return 'No color chosen';
                 }
                 return null;
@@ -465,10 +454,9 @@ class _AddCategoryTextFieldState extends State<AddCategoryTextField> {
         GestureDetector(
           onTap: () {
             if (formKey.currentState!.validate()) {
-              context.read<SettingsBloc>().add(SettingsAddCategory(
-                  widget.type,
-                  controller.text,
-                  context.read<SettingsAddColorCubit>().state!));
+              context
+                  .read<SettingsBloc>()
+                  .add(SettingsAddCategory(widget.type, controller.text, context.read<SettingsAddColorCubit>().state!));
               controller.clear();
               context.read<SettingsAddColorCubit>().selectColor(color: null);
             }
@@ -495,12 +483,9 @@ class ChooseColorDialog extends StatelessWidget {
       return GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          context
-              .read<SettingsAddColorCubit>()
-              .selectColor(color: Centre.colors[i].value);
+          context.read<SettingsAddColorCubit>().selectColor(color: Centre.colors[i].value);
         },
-        child: BlocBuilder<SettingsAddColorCubit, int?>(
-            builder: (context, chosenColor) {
+        child: BlocBuilder<SettingsAddColorCubit, int?>(builder: (context, chosenColor) {
           return Container(
             margin: EdgeInsets.symmetric(vertical: 0.8.h, horizontal: 2.w),
             width: 6.5.w,
@@ -524,8 +509,7 @@ class ChooseColorDialog extends StatelessWidget {
     return GestureDetector(
       onTap: () {},
       child: Material(
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20))),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
           color: Centre.shadowbgColor,
           elevation: 0,
           child: SizedBox(
@@ -538,9 +522,7 @@ class ChooseColorDialog extends StatelessWidget {
                     for (int i = 0; i < 3; i++)
                       Row(
                         // mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          for (int j = 0; j < 6; j++) colourBtn(i * 6 + j)
-                        ],
+                        children: [for (int j = 0; j < 6; j++) colourBtn(i * 6 + j)],
                       )
                   ],
                 ),

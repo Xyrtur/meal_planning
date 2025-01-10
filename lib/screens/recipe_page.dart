@@ -1,6 +1,7 @@
 import 'package:aligned_dialog/aligned_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:meal_planning/blocs/all_recipes_bloc.dart';
 import 'package:meal_planning/blocs/cubits.dart';
@@ -125,6 +126,10 @@ class RecipePage extends StatelessWidget {
                                             instructions: newInstructions.join("\n"),
                                             categories: context.read<RecipeCategoriesSelectedCubit>().state);
                                         context.read<InstructionsListCubit>().replaceList(newList: newInstructions);
+                                        context
+                                            .read<RecipeInstructionsKeysCubit>()
+                                            .replaceList(numKeys: newInstructions.length);
+                                        context.read<IngredientsListCubit>().replaceList(newList: newIngredients);
                                         context
                                             .read<RecipeIngredientKeysCubit>()
                                             .replaceList(numKeys: newIngredients.length);
@@ -268,7 +273,7 @@ class RecipePage extends StatelessWidget {
                                         child: const Icon(Icons.add),
                                       ))
                                   : Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         state is ViewingRecipe
                                             ? const Text(
@@ -295,8 +300,7 @@ class RecipePage extends StatelessWidget {
                                             ? Expanded(
                                                 child: Text(
                                                   ingredients[index],
-                                                  style: Centre.recipeText,
-                                                  softWrap: true,
+                                                  style: Centre.ingredientText,
                                                   maxLines: 3,
                                                 ),
                                               )
@@ -336,7 +340,9 @@ class RecipePage extends StatelessWidget {
                                             BlocProvider<IngredientsAlreadyDraggedCubit>(
                                                 create: (_) => IngredientsAlreadyDraggedCubit()),
                                             BlocProvider<MultiSelectIngredientsCubit>(
-                                                create: (_) => MultiSelectIngredientsCubit())
+                                                create: (_) => MultiSelectIngredientsCubit()),
+                                            BlocProvider<IngredientToGroceryCategoryHover>(
+                                                create: (_) => IngredientToGroceryCategoryHover())
                                           ],
                                           child:
                                               AddToGroceryListDialog(ingredients: state.recipe.ingredients.split('\n')),
@@ -355,69 +361,127 @@ class RecipePage extends StatelessWidget {
                       color: Centre.shadowbgColor,
                     ),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      child: BlocBuilder<RecipeInstructionsKeysCubit, List<GlobalKey<RecipeTextFieldState>>>(
-                          builder: (_, instructionsKeys) {
-                        List<String> editedInstructionsList = context.read<InstructionsListCubit>().state;
+                        padding: EdgeInsets.symmetric(vertical: 2.h),
+                        child: BlocBuilder<RecipeInstructionsKeysCubit, List<GlobalKey<RecipeTextFieldState>>>(
+                            builder: (_, instructionsKeys) {
+                          List<String> editedInstructionsList = context.read<InstructionsListCubit>().state;
 
-                        return Column(children: [
-                          for (int i = 0;
-                              i < ((state is ViewingRecipe) ? instructions.length : instructionsKeys.length);
-                              i++)
-                            Row(
-                              children: [
-                                state is EditingRecipe
-                                    ? GestureDetector(
-                                        onTap: () {
-                                          context.read<RecipeInstructionsKeysCubit>().deleteKey(stepNumber: i);
-                                          context.read<InstructionsListCubit>().delete(stepNumber: i);
-                                        },
-                                        behavior: HitTestBehavior.translucent,
-                                        child: Padding(
-                                          padding: EdgeInsets.all(2.w),
-                                          child: const Icon(Icons.delete),
+                          return KeyboardVisibilityBuilder(builder: (_, isKeyboardVisible) {
+                            if (MediaQuery.of(context).viewInsets.bottom != 0) {
+                              if (!isKeyboardVisible) {
+                                FocusScope.of(context).unfocus();
+                              }
+                            }
+                            return ReorderableListView(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                buildDefaultDragHandles: false,
+                                onReorder: (oldIndex, newIndex) {
+                                  if (state is EditingRecipe) {
+                                    if (oldIndex < newIndex) {
+                                      newIndex -= 1;
+                                    }
+
+                                    context
+                                        .read<InstructionsListCubit>()
+                                        .reorder(oldIndex: oldIndex, newIndex: newIndex);
+                                    context
+                                        .read<RecipeInstructionsKeysCubit>()
+                                        .reorder(oldIndex: oldIndex, newIndex: newIndex);
+                                  }
+                                },
+                                children: [
+                                  for (int i = 0;
+                                      i < ((state is ViewingRecipe) ? instructions.length : instructionsKeys.length);
+                                      i++)
+                                    Column(
+                                      key: ValueKey(i),
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                              right: state is EditingRecipe ? 4.w : 2.w,
+                                              left: state is EditingRecipe ? 0 : 5.w),
+                                          child: Row(
+                                            children: [
+                                              Column(
+                                                spacing: 1.5.h,
+                                                children: [
+                                                  state is EditingRecipe && !isKeyboardVisible
+                                                      ? ReorderableDragStartListener(
+                                                          index: i,
+                                                          child: const Icon(Icons.drag_handle),
+                                                        )
+                                                      : const SizedBox(),
+                                                  state is EditingRecipe
+                                                      ? GestureDetector(
+                                                          onTap: () {
+                                                            context
+                                                                .read<RecipeInstructionsKeysCubit>()
+                                                                .deleteKey(stepNumber: i);
+                                                            context.read<InstructionsListCubit>().delete(stepNumber: i);
+                                                          },
+                                                          behavior: HitTestBehavior.translucent,
+                                                          child: Padding(
+                                                            padding: EdgeInsets.all(2.w),
+                                                            child: const Icon(Icons.delete),
+                                                          ),
+                                                        )
+                                                      : const SizedBox(),
+                                                ],
+                                              ),
+                                              Padding(
+                                                padding: EdgeInsets.symmetric(horizontal: 3.w),
+                                                child: Text("${i + 1}", style: Centre.listText),
+                                              ),
+                                              state is ViewingRecipe
+                                                  ? Expanded(
+                                                      child: Text(
+                                                      instructions[i],
+                                                      style: Centre.recipeText,
+                                                      maxLines: 7,
+                                                    ))
+                                                  : Expanded(
+                                                      child: RecipeTextField(
+                                                        key: instructionsKeys[i],
+                                                        stepNumber: i,
+                                                        type: TextFieldType.instruction,
+                                                        text: editedInstructionsList.isEmpty
+                                                            ? ""
+                                                            : i >= editedInstructionsList.length
+                                                                ? ""
+                                                                : editedInstructionsList[i],
+                                                      ),
+                                                    )
+                                            ],
+                                          ),
                                         ),
-                                      )
-                                    : const SizedBox(),
-                                Text("${i + 1}", style: Centre.listText),
-                                SizedBox(
-                                  width: 3.w,
-                                ),
-                                state is ViewingRecipe
-                                    ? Expanded(
-                                        child: Text(
-                                        instructions[i],
-                                        style: Centre.recipeText,
-                                        maxLines: 5,
-                                      ))
-                                    : Expanded(
-                                        child: RecipeTextField(
-                                          key: instructionsKeys[i],
-                                          stepNumber: i,
-                                          type: TextFieldType.instruction,
-                                          text: editedInstructionsList.isEmpty
-                                              ? ""
-                                              : i >= editedInstructionsList.length
-                                                  ? ""
-                                                  : editedInstructionsList[i],
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 3.w),
+                                          child: Divider(
+                                            color: Centre.dialogBgColor,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  state is EditingRecipe
+                                      ? GestureDetector(
+                                          onLongPress: () {},
+                                          key: const ValueKey("addbutton"),
+                                          onTap: () {
+                                            context.read<RecipeInstructionsKeysCubit>().add(stepNumber: -1, numKeys: 1);
+                                            context.read<InstructionsListCubit>().add(instruction: "", stepNumber: -1);
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.fromLTRB(2.w, 3.h, 2.w, 5.h),
+                                            child: const Icon(Icons.add),
+                                          ))
+                                      : const SizedBox(
+                                          key: ValueKey("a box"),
                                         ),
-                                      )
-                              ],
-                            ),
-                          state is EditingRecipe
-                              ? GestureDetector(
-                                  onTap: () {
-                                    context.read<RecipeInstructionsKeysCubit>().add(stepNumber: -1, numKeys: 1);
-                                    context.read<InstructionsListCubit>().add(instruction: "", stepNumber: -1);
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.fromLTRB(2.w, 3.h, 2.w, 8.h),
-                                    child: const Icon(Icons.add),
-                                  ))
-                              : const SizedBox(),
-                        ]);
-                      }),
-                    ),
+                                ]);
+                          });
+                        })),
                   ],
                 ),
               ),
@@ -467,7 +531,6 @@ class RecipeTextFieldState extends State<RecipeTextField> {
       style: Centre.recipeText,
       minLines: 1,
       maxLines: 40,
-      // autofocus: widget.existingTitles != null,
       contextMenuBuilder: (_, EditableTextState editableTextState) {
         return AdaptiveTextSelectionToolbar.editable(
           anchors: editableTextState.contextMenuAnchors,

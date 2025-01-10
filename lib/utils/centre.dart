@@ -38,6 +38,9 @@ class Centre {
       TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 17.sp, fontFamily: 'Raleway');
   static final listText =
       TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 15.sp, fontFamily: 'Raleway');
-  static final recipeText =
+  static final ingredientText =
       TextStyle(color: Colors.black, fontWeight: FontWeight.w400, fontSize: 14.sp, fontFamily: 'Raleway');
+
+  static final recipeText = TextStyle(
+      color: Colors.black, fontWeight: FontWeight.w400, fontSize: 14.sp, fontFamily: 'Raleway', height: 0.15.h);
 }

@@ -21,8 +21,7 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -43,20 +42,15 @@ class _SplashScreenState extends State<SplashScreen>
                   value: context.read<HiveRepository>(),
                   child: MultiBlocProvider(providers: [
                     BlocProvider<SettingsBloc>(
-                      create: (_) =>
-                          SettingsBloc(context.read<HiveRepository>()),
+                      create: (_) => SettingsBloc(context.read<HiveRepository>()),
                     ),
                     BlocProvider<GroceryBloc>(
-                      create: (_) =>
-                          GroceryBloc(context.read<HiveRepository>()),
+                      create: (_) => GroceryBloc(context.read<HiveRepository>()),
                     ),
                     BlocProvider<ImportExportBloc>(
-                      create: (context) =>
-                          ImportExportBloc(context.read<HiveRepository>()),
+                      create: (context) => ImportExportBloc(context.read<HiveRepository>()),
                     ),
-                    BlocProvider<NavbarCubit>(
-                        create: (context) =>
-                            NavbarCubit(PageSelected.weeklyPlanning))
+                    BlocProvider<NavbarCubit>(create: (context) => NavbarCubit(PageSelected.weeklyPlanning))
                   ], child: const LandingPageView()),
                 );
 
