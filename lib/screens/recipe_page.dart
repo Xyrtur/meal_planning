@@ -20,7 +20,9 @@ class RecipePage extends StatelessWidget {
   final ShakeController _shakeController = ShakeController();
   final List<String> existingRecipeTitles;
   final GlobalKey<RecipeTextFieldState> titleKey;
-  RecipePage({super.key, required this.existingRecipeTitles, required this.titleKey});
+  final GlobalKey<FormFieldState> prepTimeKey;
+  final TextEditingController prepTimeController = TextEditingController();
+  RecipePage({super.key, required this.existingRecipeTitles, required this.titleKey, required this.prepTimeKey});
   // List of keys will let us validate all their controllers at once when user is finished editing
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final ValueNotifier<bool?> deletingRecipe = ValueNotifier<bool?>(false);
@@ -40,6 +42,7 @@ class RecipePage extends StatelessWidget {
       body: BlocBuilder<RecipeBloc, RecipeState>(builder: (_, state) {
         List<String> ingredients = state.recipe?.ingredients.split('\n') ?? [];
         List<String> instructions = state.recipe?.instructions.split('\n') ?? [];
+        prepTimeController.text = state.recipe?.prepTime ?? "";
 
         return Form(
           key: formKey,
@@ -104,10 +107,12 @@ class RecipePage extends StatelessWidget {
 
                                       if ((state as EditingRecipe).recipe == null) {
                                         Recipe recipe = Recipe(
-                                            title: titleKey.currentState!.controller.text,
-                                            ingredients: newIngredients.join("\n"),
-                                            instructions: newInstructions.join("\n"),
-                                            categories: context.read<RecipeCategoriesSelectedCubit>().state);
+                                          title: titleKey.currentState!.controller.text,
+                                          ingredients: newIngredients.join("\n"),
+                                          instructions: newInstructions.join("\n"),
+                                          categories: context.read<RecipeCategoriesSelectedCubit>().state,
+                                          prepTime: prepTimeController.text,
+                                        );
                                         context.read<InstructionsListCubit>().replaceList(newList: newInstructions);
                                         context
                                             .read<RecipeInstructionsKeysCubit>()
@@ -121,10 +126,12 @@ class RecipePage extends StatelessWidget {
                                       } else {
                                         Recipe recipe = state.recipe!;
                                         recipe.edit(
-                                            title: titleKey.currentState!.controller.text,
-                                            ingredients: newIngredients.join("\n"),
-                                            instructions: newInstructions.join("\n"),
-                                            categories: context.read<RecipeCategoriesSelectedCubit>().state);
+                                          title: titleKey.currentState!.controller.text,
+                                          ingredients: newIngredients.join("\n"),
+                                          instructions: newInstructions.join("\n"),
+                                          categories: context.read<RecipeCategoriesSelectedCubit>().state,
+                                          prepTime: prepTimeController.text,
+                                        );
                                         context.read<InstructionsListCubit>().replaceList(newList: newInstructions);
                                         context
                                             .read<RecipeInstructionsKeysCubit>()
@@ -235,6 +242,33 @@ class RecipePage extends StatelessWidget {
                         ),
                       );
                     }),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 1.h),
+                      child: Row(
+                        children: [
+                          Text("Prep time: ", style: Centre.listText),
+                          state is ViewingRecipe
+                              ? Text(state.recipe.prepTime)
+                              : SizedBox(
+                                  width: 20.w,
+                                  child: TextFormField(
+                                    key: prepTimeKey,
+                                    decoration: const InputDecoration(isDense: true),
+                                    style: Centre.recipeText,
+                                    controller: prepTimeController,
+                                    validator: ((text) {
+                                      if (text == null || text.isEmpty) {
+                                        return 'Can\'t be empty';
+                                      } else if (text.length > 20) {
+                                        return 'Too long';
+                                      }
+                                      return null;
+                                    }),
+                                  ),
+                                )
+                        ],
+                      ),
+                    ),
                     Text(
                       "Ingredients",
                       style: Centre.semiTitleText,

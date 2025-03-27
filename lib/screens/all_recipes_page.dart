@@ -31,7 +31,8 @@ class AllRecipesPage extends StatelessWidget {
                 const Spacer(),
                 GestureDetector(
                     onTap: () {
-                      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+                      GlobalKey<RecipeTextFieldState> titleKey = GlobalKey<RecipeTextFieldState>();
+                      GlobalKey<FormFieldState> prepTimeKey = GlobalKey<FormFieldState>();
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (_) => MultiBlocProvider(
                                 providers: [
@@ -67,7 +68,8 @@ class AllRecipesPage extends StatelessWidget {
                                   ),
                                 ],
                                 child: RecipePage(
-                                    titleKey: createdKey,
+                                    titleKey: titleKey,
+                                    prepTimeKey: prepTimeKey,
                                     existingRecipeTitles:
                                         context.read<HiveRepository>().recipeTitlestoRecipeMap.keys.toList()),
                               )));
@@ -220,7 +222,8 @@ class RecipeListview extends StatelessWidget {
                 instructionKeys.add(GlobalKey<RecipeTextFieldState>());
               }
 
-              GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+              GlobalKey<RecipeTextFieldState> titleKey = GlobalKey<RecipeTextFieldState>();
+              GlobalKey<FormFieldState> prepTimeKey = GlobalKey<FormFieldState>();
               Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => MultiBlocProvider(
                           providers: [
@@ -256,7 +259,8 @@ class RecipeListview extends StatelessWidget {
                             ),
                           ],
                           child: RecipePage(
-                              titleKey: createdKey,
+                              titleKey: titleKey,
+                              prepTimeKey: prepTimeKey,
                               existingRecipeTitles:
                                   context.read<HiveRepository>().recipeTitlestoRecipeMap.keys.toList()))));
             }

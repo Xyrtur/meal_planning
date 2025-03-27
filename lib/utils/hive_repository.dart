@@ -54,6 +54,16 @@ class HiveRepository {
     mealPlanningBox = Hive.box<dynamic>('mealPlanningBox');
 
     recipeList = recipesBox.values.cast<Recipe>().toList();
+    // for (Recipe recipe in recipeList) {
+    //   recipe.edit(
+    //       title: recipe.title,
+    //       ingredients: recipe.ingredients,
+    //       instructions: recipe.instructions,
+    //       categories: recipe.categories,
+    //       prepTime: "30 mins");
+    //   recipe.save();
+    // }
+
     recipeCategoriesMap = (mealPlanningBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
     groceryCategoriesMap = (mealPlanningBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
     genericCategoriesMap = (mealPlanningBox.get('genericCategoriesMap') ?? <String, int>{}).cast<String, int>();
@@ -173,21 +183,64 @@ class HiveRepository {
 
       case CategoryType.recipe:
         recipeCategoriesMap.remove(categoryName);
+
+        // If the category is not empty, add the "Other" category to the recipe if it has no other categories attached to it
         if (recipeCategoriesToRecipeTitlesMap[categoryName]!.isNotEmpty) {
           recipeCategoriesToRecipeTitlesMap.update("Other", (list) {
             for (String recipeName in recipeCategoriesToRecipeTitlesMap[categoryName]!) {
+              Recipe oldRecipe = recipeTitlestoRecipeMap[recipeName]!;
+
               if (recipeTitlestoRecipeMap[recipeName]!.categories.length == 1) {
                 list.add(recipeName);
+                oldRecipe.edit(
+                    title: oldRecipe.title,
+                    ingredients: oldRecipe.ingredients,
+                    instructions: oldRecipe.instructions,
+                    categories: ["Other"],
+                    prepTime: oldRecipe.prepTime);
+              } else {
+                oldRecipe.edit(
+                    title: oldRecipe.title,
+                    ingredients: oldRecipe.ingredients,
+                    instructions: oldRecipe.instructions,
+                    categories: oldRecipe.categories..remove(categoryName),
+                    prepTime: oldRecipe.prepTime);
               }
+              // Remove the deleted category from the recipe's category list
+              recipeList.remove(recipeTitlestoRecipeMap[recipeName]!);
+              recipeTitlestoRecipeMap[recipeName] = oldRecipe;
+              recipeList.add(oldRecipe);
+              oldRecipe.save();
             }
+
             return list;
           }, ifAbsent: () {
             recipeCategoriesMap["Other"] = Colors.blueGrey.value;
             List<String> list = [];
             for (String recipeName in recipeCategoriesToRecipeTitlesMap[categoryName]!) {
+              Recipe oldRecipe = recipeTitlestoRecipeMap[recipeName]!;
+
               if (recipeTitlestoRecipeMap[recipeName]!.categories.length == 1) {
                 list.add(recipeName);
+                oldRecipe.edit(
+                    title: oldRecipe.title,
+                    ingredients: oldRecipe.ingredients,
+                    instructions: oldRecipe.instructions,
+                    categories: ["Other"],
+                    prepTime: oldRecipe.prepTime);
+              } else {
+                oldRecipe.edit(
+                    title: oldRecipe.title,
+                    ingredients: oldRecipe.ingredients,
+                    instructions: oldRecipe.instructions,
+                    categories: oldRecipe.categories..remove(categoryName),
+                    prepTime: oldRecipe.prepTime);
               }
+              // Remove the deleted category from the recipe's category list
+              recipeList.remove(recipeTitlestoRecipeMap[recipeName]!);
+              recipeTitlestoRecipeMap[recipeName] = oldRecipe;
+              recipeList.add(oldRecipe);
+              oldRecipe.save();
             }
             return list;
           });

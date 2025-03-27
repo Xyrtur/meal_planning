@@ -39,10 +39,10 @@ class FilterCategoryDialog extends StatelessWidget {
 
     return Material(
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
-        color: Centre.shadowbgColor,
+        color: isWeeklyPlanning ? Centre.bgColor : Centre.dialogBgColor,
         elevation: isWeeklyPlanning ? 3 : 0,
         child: SizedBox(
-            height: isWeeklyPlanning ? categoriesMap.keys.length * 5.1.h : categoriesMap.keys.length * 5.1.h,
+            height: isWeeklyPlanning ? categoriesMap.keys.length * 4.4.h : categoriesMap.keys.length * 4.4.h,
             width: 50.w,
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 3.w),
