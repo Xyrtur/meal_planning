@@ -16,8 +16,8 @@ void main() async {
   Hive.registerAdapter(GroceryItemAdapter());
   Hive.registerAdapter(RecipeAdapter());
 
-  await Hive.openBox<Recipe>('recipesBox');
-  await Hive.openBox<dynamic>('mealPlanningBox');
+  await Hive.openBox<Recipe>('remcipesBox');
+  await Hive.openBox<dynamic>('mealPlanmingBox');
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   // Sentry code to get emailed exceptions

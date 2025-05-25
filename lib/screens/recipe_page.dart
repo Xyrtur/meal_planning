@@ -109,6 +109,7 @@ class RecipePage extends StatelessWidget {
                                         Recipe recipe = Recipe(
                                           title: titleKey.currentState!.controller.text,
                                           ingredients: newIngredients.join("\n"),
+                                          ingredientsMap: {},
                                           instructions: newInstructions.join("\n"),
                                           categories: context.read<RecipeCategoriesSelectedCubit>().state,
                                           prepTime: prepTimeController.text,
@@ -128,6 +129,7 @@ class RecipePage extends StatelessWidget {
                                         recipe.edit(
                                           title: titleKey.currentState!.controller.text,
                                           ingredients: newIngredients.join("\n"),
+                                          ingredientsMap: {},
                                           instructions: newInstructions.join("\n"),
                                           categories: context.read<RecipeCategoriesSelectedCubit>().state,
                                           prepTime: prepTimeController.text,
@@ -269,9 +271,13 @@ class RecipePage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Text(
-                      "Ingredients",
-                      style: Centre.semiTitleText,
+                    Row(
+                      children: [
+                        Text(
+                          "Ingredients",
+                          style: Centre.semiTitleText,
+                        ),
+                      ],
                     ),
                     Divider(
                       height: 0.5.h,

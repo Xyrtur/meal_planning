@@ -22,22 +22,27 @@ class Recipe extends HiveObject with Compare<Recipe> {
   List<String> categories;
   @HiveField(4)
   String prepTime;
+  @HiveField(5)
+  Map<String, String> ingredientsMap;
 
   Recipe(
       {required this.title,
       required this.ingredients,
       required this.instructions,
       required this.categories,
-      required this.prepTime});
+      required this.prepTime,
+      required this.ingredientsMap});
 
   Recipe edit(
       {required String title,
       required String ingredients,
       required String instructions,
       required List<String> categories,
-      required String prepTime}) {
+      required String prepTime,
+      required Map<String, String> ingredientsMap}) {
     this.title = title;
     this.ingredients = ingredients;
+    this.ingredientsMap = ingredientsMap;
     this.instructions = instructions;
     this.categories = categories;
     this.prepTime = prepTime;
@@ -55,6 +60,7 @@ class Recipe extends HiveObject with Compare<Recipe> {
     return {
       'title': title,
       'ingredients': ingredients,
+      'ingredientsMap': ingredientsMap,
       'instructions': instructions,
       'categories': categories,
       'prepTime': prepTime

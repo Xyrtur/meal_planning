@@ -14,8 +14,8 @@ import 'package:sizer/sizer.dart';
 enum CategoryType { grocery, recipe, generic }
 
 class HiveRepository {
-  late Box recipesBox;
-  late Box mealPlanningBox;
+  late Box remcipesBox;
+  late Box mealPlanmingBox;
 
   // RECIPES
   // Stores all the lists from the recipe box
@@ -50,32 +50,33 @@ class HiveRepository {
   HiveRepository();
 
   cacheInitialData() {
-    recipesBox = Hive.box<Recipe>('recipesBox');
-    mealPlanningBox = Hive.box<dynamic>('mealPlanningBox');
+    remcipesBox = Hive.box<Recipe>('remcipesBox');
+    mealPlanmingBox = Hive.box<dynamic>('mealPlanmingBox');
 
-    recipeList = recipesBox.values.cast<Recipe>().toList();
-    // for (Recipe recipe in recipeList) {
-    //   recipe.edit(
-    //       title: recipe.title,
-    //       ingredients: recipe.ingredients,
-    //       instructions: recipe.instructions,
-    //       categories: recipe.categories,
-    //       prepTime: "30 mins");
-    //   recipe.save();
-    // }
+    recipeList = remcipesBox.values.cast<Recipe>().toList();
+    for (Recipe recipe in recipeList) {
+      recipe.edit(
+          title: recipe.title,
+          ingredients: recipe.ingredients,
+          ingredientsMap: {"NoTitle": recipe.ingredients},
+          instructions: recipe.instructions,
+          categories: recipe.categories,
+          prepTime: "30 mins");
+      recipe.save();
+    }
 
-    recipeCategoriesMap = (mealPlanningBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
-    groceryCategoriesMap = (mealPlanningBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
-    genericCategoriesMap = (mealPlanningBox.get('genericCategoriesMap') ?? <String, int>{}).cast<String, int>();
-    (mealPlanningBox.get('groceryItemsMap') ?? {}).forEach((key, value) {
+    recipeCategoriesMap = (mealPlanmingBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    groceryCategoriesMap = (mealPlanmingBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    genericCategoriesMap = (mealPlanmingBox.get('genericCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    (mealPlanmingBox.get('groceryItemsMap') ?? {}).forEach((key, value) {
       if (key is String && value is List<dynamic>) {
         groceryItemsMap[key] = value.whereType<GroceryItem>().toList();
       }
     });
 
-    currentWeekRanges = (mealPlanningBox.get('currentWeekRanges') ?? []).cast<DateTime>();
-    weeklyMealsList = (mealPlanningBox.get('weeklyMealsList') ?? []).cast<String>();
-    groceryCategoryOrder = (mealPlanningBox.get('groceryCategoryOrder') ?? []).cast<String>();
+    currentWeekRanges = (mealPlanmingBox.get('currentWeekRanges') ?? []).cast<DateTime>();
+    weeklyMealsList = (mealPlanmingBox.get('weeklyMealsList') ?? []).cast<String>();
+    groceryCategoryOrder = (mealPlanmingBox.get('groceryCategoryOrder') ?? []).cast<String>();
 
     recipeTitlestoRecipeMap.clear();
     weeklyMealsSplit.clear();
@@ -143,8 +144,8 @@ class HiveRepository {
       }
     }
     // Update in the box
-    mealPlanningBox.put('currentWeekRanges', currentWeekRanges);
-    mealPlanningBox.put('weeklyMealsList', weeklyMealsList);
+    mealPlanmingBox.put('currentWeekRanges', currentWeekRanges);
+    mealPlanmingBox.put('weeklyMealsList', weeklyMealsList);
 
     for (int i = 0; i < (weeklyMealsList.length / 5).floor(); i++) {
       weeklyMealsSplit.add(weeklyMealsList.sublist(i * 5, i * 5 + 5));
@@ -157,7 +158,7 @@ class HiveRepository {
     // Update the box
     weeklyMealsList[index] = recipeName;
     weeklyMealsSplit[(index / 5).floor()][index % 5] = recipeName;
-    mealPlanningBox.put('weeklyMealsList', weeklyMealsList);
+    mealPlanmingBox.put('weeklyMealsList', weeklyMealsList);
   }
 
   // Settings page
@@ -175,9 +176,9 @@ class HiveRepository {
         }
         groceryItemsMap.remove(categoryName);
 
-        mealPlanningBox.put('groceryCategoryOrder', groceryCategoryOrder);
-        mealPlanningBox.put('groceryCategoriesMap', groceryCategoriesMap);
-        mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+        mealPlanmingBox.put('groceryCategoryOrder', groceryCategoryOrder);
+        mealPlanmingBox.put('groceryCategoriesMap', groceryCategoriesMap);
+        mealPlanmingBox.put('groceryItemsMap', groceryItemsMap);
 
         break;
 
@@ -195,6 +196,7 @@ class HiveRepository {
                 oldRecipe.edit(
                     title: oldRecipe.title,
                     ingredients: oldRecipe.ingredients,
+                    ingredientsMap: {},
                     instructions: oldRecipe.instructions,
                     categories: ["Other"],
                     prepTime: oldRecipe.prepTime);
@@ -202,6 +204,7 @@ class HiveRepository {
                 oldRecipe.edit(
                     title: oldRecipe.title,
                     ingredients: oldRecipe.ingredients,
+                    ingredientsMap: {},
                     instructions: oldRecipe.instructions,
                     categories: oldRecipe.categories..remove(categoryName),
                     prepTime: oldRecipe.prepTime);
@@ -225,6 +228,7 @@ class HiveRepository {
                 oldRecipe.edit(
                     title: oldRecipe.title,
                     ingredients: oldRecipe.ingredients,
+                    ingredientsMap: {},
                     instructions: oldRecipe.instructions,
                     categories: ["Other"],
                     prepTime: oldRecipe.prepTime);
@@ -232,6 +236,7 @@ class HiveRepository {
                 oldRecipe.edit(
                     title: oldRecipe.title,
                     ingredients: oldRecipe.ingredients,
+                    ingredientsMap: {},
                     instructions: oldRecipe.instructions,
                     categories: oldRecipe.categories..remove(categoryName),
                     prepTime: oldRecipe.prepTime);
@@ -247,7 +252,7 @@ class HiveRepository {
         }
         recipeCategoriesToRecipeTitlesMap.remove(categoryName);
 
-        mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
+        mealPlanmingBox.put('recipeCategoriesMap', recipeCategoriesMap);
 
         break;
 
@@ -259,8 +264,8 @@ class HiveRepository {
             weeklyMealsSplit[(i / 5).floor()][i % 5] = "";
           }
         }
-        mealPlanningBox.put('genericCategoriesMap', genericCategoriesMap);
-        mealPlanningBox.put('weeklyMealsList', weeklyMealsList);
+        mealPlanmingBox.put('genericCategoriesMap', genericCategoriesMap);
+        mealPlanmingBox.put('weeklyMealsList', weeklyMealsList);
         break;
     }
   }
@@ -269,24 +274,24 @@ class HiveRepository {
     switch (type) {
       case CategoryType.grocery:
         groceryCategoriesMap[categoryName] = color;
-        mealPlanningBox.put('groceryCategoriesMap', groceryCategoriesMap);
+        mealPlanmingBox.put('groceryCategoriesMap', groceryCategoriesMap);
 
         groceryItemsMap.addAll({categoryName: []});
-        mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+        mealPlanmingBox.put('groceryItemsMap', groceryItemsMap);
 
         groceryCategoryOrder.add(categoryName);
-        mealPlanningBox.put('groceryCategoryOrder', groceryCategoryOrder);
+        mealPlanmingBox.put('groceryCategoryOrder', groceryCategoryOrder);
         break;
 
       case CategoryType.recipe:
         recipeCategoriesMap[categoryName] = color;
         recipeCategoriesToRecipeTitlesMap[categoryName] = [];
-        mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
+        mealPlanmingBox.put('recipeCategoriesMap', recipeCategoriesMap);
         break;
 
       case CategoryType.generic:
         genericCategoriesMap[categoryName] = color;
-        mealPlanningBox.put('genericCategoriesMap', genericCategoriesMap);
+        mealPlanmingBox.put('genericCategoriesMap', genericCategoriesMap);
         break;
     }
   }
@@ -303,9 +308,9 @@ class HiveRepository {
           List<GroceryItem> items = groceryItemsMap.remove(oldName)!;
           groceryItemsMap[newName] = items;
         }
-        mealPlanningBox.put('groceryCategoriesMap', groceryCategoriesMap);
-        mealPlanningBox.put('groceryCategoryOrder', groceryCategoryOrder);
-        mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+        mealPlanmingBox.put('groceryCategoriesMap', groceryCategoriesMap);
+        mealPlanmingBox.put('groceryCategoryOrder', groceryCategoryOrder);
+        mealPlanmingBox.put('groceryItemsMap', groceryItemsMap);
         break;
 
       case CategoryType.recipe:
@@ -322,7 +327,7 @@ class HiveRepository {
             recipeTitlestoRecipeMap[recipeTitle]!.save();
           }
         }
-        mealPlanningBox.put('recipeCategoriesMap', recipeCategoriesMap);
+        mealPlanmingBox.put('recipeCategoriesMap', recipeCategoriesMap);
         break;
 
       case CategoryType.generic:
@@ -338,8 +343,8 @@ class HiveRepository {
             }
           }
         }
-        mealPlanningBox.put('genericCategoriesMap', genericCategoriesMap);
-        mealPlanningBox.put('weeklyMealsList', weeklyMealsList);
+        mealPlanmingBox.put('genericCategoriesMap', genericCategoriesMap);
+        mealPlanmingBox.put('weeklyMealsList', weeklyMealsList);
         break;
     }
   }
@@ -385,7 +390,7 @@ class HiveRepository {
         }
       }
     }
-    mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+    mealPlanmingBox.put('groceryItemsMap', groceryItemsMap);
   }
 
   void deleteGroceryItems({required Map<String, List<GroceryItem>> itemsToDelete, required bool clearAll}) {
@@ -400,22 +405,22 @@ class HiveRepository {
         }
       }
     }
-    mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+    mealPlanmingBox.put('groceryItemsMap', groceryItemsMap);
   }
 
   void addGroceryItem(GroceryItem item, String category) {
     groceryItemsMap[category]!.add(item);
-    mealPlanningBox.put('groceryItemsMap', groceryItemsMap);
+    mealPlanmingBox.put('groceryItemsMap', groceryItemsMap);
   }
 
   void updateGroceryCategoryOrder({required List<String> newOrder}) {
     groceryCategoryOrder = newOrder;
-    mealPlanningBox.put('groceryCategoryOrder', groceryCategoryOrder);
+    mealPlanmingBox.put('groceryCategoryOrder', groceryCategoryOrder);
   }
 
   // Recipe page functions
   void addRecipe({required Recipe recipe}) {
-    recipesBox.add(recipe);
+    remcipesBox.add(recipe);
     recipeList.add(recipe);
     recipeTitlestoRecipeMap.addEntries({recipe.title: recipe}.entries);
     for (String category in recipe.categories) {
@@ -452,11 +457,11 @@ class HiveRepository {
   // Create a backup of current data and import data from the selected zip file
   Future<bool> importFile(bool isAndroid) async {
     // Get the paths to each of the box files
-    String firstBoxPath = recipesBox.path!;
-    String secondBoxPath = mealPlanningBox.path!;
+    String firstBoxPath = remcipesBox.path!;
+    String secondBoxPath = mealPlanmingBox.path!;
 
     // If any data is present in the app, export a backup for the user
-    if (mealPlanningBox.isNotEmpty || recipesBox.isNotEmpty) {
+    if (mealPlanmingBox.isNotEmpty || remcipesBox.isNotEmpty) {
       // Get a directory to export to
       String? selectedDirectory =
           isAndroid ? (await getExternalStorageDirectory())?.path : (await getApplicationDocumentsDirectory()).path;
@@ -470,8 +475,8 @@ class HiveRepository {
       encoder.create("$selectedDirectory/back_up_meal_planning.zip");
 
       // Close the hives first
-      await recipesBox.close();
-      await mealPlanningBox.close();
+      await remcipesBox.close();
+      await mealPlanmingBox.close();
 
       // Add the box files to the zip
       encoder.addFile((File(firstBoxPath)));
@@ -479,8 +484,8 @@ class HiveRepository {
       encoder.close();
 
       // Re-open the boxes
-      recipesBox = await Hive.openBox<Recipe>('recipesBox');
-      mealPlanningBox = await Hive.openBox<dynamic>('mealPlanningBox');
+      remcipesBox = await Hive.openBox<Recipe>('remcipesBox');
+      mealPlanmingBox = await Hive.openBox<dynamic>('mealPlanmingBox');
     }
 
     // Get the user to pick a zip file
@@ -489,11 +494,11 @@ class HiveRepository {
         .pickFiles(dialogTitle: "Choose zip file", type: FileType.custom, allowedExtensions: ['zip']);
 
     if (result != null) {
-      await recipesBox.close();
-      await mealPlanningBox.close();
+      await remcipesBox.close();
+      await mealPlanmingBox.close();
 
       final inputStream = InputFileStream(result.files.single.path!);
-      final archive = ZipDecoder().decodeBuffer(inputStream);
+      final archive = ZipDecoder().decodeStream(inputStream);
 
       // For all of the entries in the archive
       final firstStream = OutputFileStream(firstBoxPath);
@@ -516,8 +521,8 @@ class HiveRepository {
         }
       }
 
-      recipesBox = await Hive.openBox<Recipe>('recipesBox');
-      mealPlanningBox = await Hive.openBox<dynamic>('mealPlanningBox');
+      remcipesBox = await Hive.openBox<Recipe>('remcipesBox');
+      mealPlanmingBox = await Hive.openBox<dynamic>('mealPlanmingBox');
 
       return true;
     }
@@ -534,11 +539,11 @@ class HiveRepository {
     if (selectedDirectory != null) {
       var encoder = ZipFileEncoder();
       encoder.create("$selectedDirectory/meal_planning.zip");
-      String firstBoxPath = recipesBox.path!;
-      String secondBoxPath = mealPlanningBox.path!;
+      String firstBoxPath = remcipesBox.path!;
+      String secondBoxPath = mealPlanmingBox.path!;
 
-      await recipesBox.close();
-      await mealPlanningBox.close();
+      await remcipesBox.close();
+      await mealPlanmingBox.close();
 
       await encoder.addFile((File(firstBoxPath)));
       await encoder.addFile((File(secondBoxPath)));
@@ -546,8 +551,8 @@ class HiveRepository {
       Share.shareXFiles([XFile("$selectedDirectory/meal_planning.zip", name: "meal_planning.zip")],
           sharePositionOrigin: Rect.fromLTWH(0, 0, 100.w, 100.h / 2), subject: 'Meal Planning backup file');
 
-      recipesBox = await Hive.openBox<Recipe>('recipesBox');
-      mealPlanningBox = await Hive.openBox<dynamic>('mealPlanningBox');
+      remcipesBox = await Hive.openBox<Recipe>('remcipesBox');
+      mealPlanmingBox = await Hive.openBox<dynamic>('mealPlanmingBox');
 
       return selectedDirectory;
     }
