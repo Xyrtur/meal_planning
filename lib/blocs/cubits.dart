@@ -296,3 +296,23 @@ class NavbarCubit extends Cubit<PageSelected> {
     emit(page);
   }
 }
+
+class IngredientSubsectionsKeysCubit extends Cubit<Map<int, GlobalKey<RecipeTextFieldState>>> {
+  final Map<int, GlobalKey<RecipeTextFieldState>> keys;
+  IngredientSubsectionsKeysCubit(this.keys) : super(keys);
+
+  void addSubsection({required int atIngredientNumber}) {
+    final newMap = {...state};
+    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+    newMap[atIngredientNumber] = createdKey;
+
+    emit(newMap);
+  }
+
+  void deleteSubsection({required int atIngredientNumber}) {
+    final newMap = {...state};
+    newMap.remove(atIngredientNumber);
+
+    emit(newMap);
+  }
+}

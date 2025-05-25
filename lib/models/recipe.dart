@@ -23,7 +23,7 @@ class Recipe extends HiveObject with Compare<Recipe> {
   @HiveField(4)
   String prepTime;
   @HiveField(5)
-  Map<String, String> ingredientsMap;
+  Map<String, String>? ingredientsMap;
 
   Recipe(
       {required this.title,

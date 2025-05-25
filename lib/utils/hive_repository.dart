@@ -61,7 +61,7 @@ class HiveRepository {
           ingredientsMap: {"NoTitle": recipe.ingredients},
           instructions: recipe.instructions,
           categories: recipe.categories,
-          prepTime: "30 mins");
+          prepTime: recipe.prepTime);
       recipe.save();
     }
 
