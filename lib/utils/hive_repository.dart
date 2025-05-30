@@ -54,17 +54,20 @@ class HiveRepository {
     mealPlanmingBox = Hive.box<dynamic>('mealPlanmingBox');
 
     recipeList = remcipesBox.values.cast<Recipe>().toList();
-    // for (Recipe recipe in recipeList) {
-    //   recipe.edit(
-    //       title: recipe.title,
-    //       ingredients: recipe.ingredients,
-    //       subsectionOrder: {0: "000"},
-    //       instructions: recipe.instructions,
-    //       categories: recipe.categories,
-    //       prepTime: recipe.prepTime);
-    //   recipe.save();
-    // }
-    // recipeList = remcipesBox.values.cast<Recipe>().toList();
+    for (Recipe recipe in recipeList) {
+      recipe.edit(
+          title: recipe.title,
+          ingredients: recipe.ingredients,
+          subsectionOrder: {0: "000"},
+          instructions: recipe.instructions,
+          categories: recipe.categories,
+          prepTime: recipe.prepTime);
+      recipe.save();
+    }
+    recipeList = remcipesBox.values.cast<Recipe>().toList();
+    for (Recipe recipe in recipeList) {
+      recipe.save();
+    }
 
     recipeCategoriesMap = (mealPlanmingBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
     groceryCategoriesMap = (mealPlanmingBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
