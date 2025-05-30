@@ -54,16 +54,17 @@ class HiveRepository {
     mealPlanmingBox = Hive.box<dynamic>('mealPlanmingBox');
 
     recipeList = remcipesBox.values.cast<Recipe>().toList();
-    for (Recipe recipe in recipeList) {
-      recipe.edit(
-          title: recipe.title,
-          ingredients: recipe.ingredients,
-          ingredientsMap: {"NoTitle": recipe.ingredients},
-          instructions: recipe.instructions,
-          categories: recipe.categories,
-          prepTime: recipe.prepTime);
-      recipe.save();
-    }
+    // for (Recipe recipe in recipeList) {
+    //   recipe.edit(
+    //       title: recipe.title,
+    //       ingredients: recipe.ingredients,
+    //       subsectionOrder: {0: "000"},
+    //       instructions: recipe.instructions,
+    //       categories: recipe.categories,
+    //       prepTime: recipe.prepTime);
+    //   recipe.save();
+    // }
+    // recipeList = remcipesBox.values.cast<Recipe>().toList();
 
     recipeCategoriesMap = (mealPlanmingBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
     groceryCategoriesMap = (mealPlanmingBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
@@ -196,7 +197,7 @@ class HiveRepository {
                 oldRecipe.edit(
                     title: oldRecipe.title,
                     ingredients: oldRecipe.ingredients,
-                    ingredientsMap: {},
+                    subsectionOrder: oldRecipe.subsectionOrder,
                     instructions: oldRecipe.instructions,
                     categories: ["Other"],
                     prepTime: oldRecipe.prepTime);
@@ -204,7 +205,7 @@ class HiveRepository {
                 oldRecipe.edit(
                     title: oldRecipe.title,
                     ingredients: oldRecipe.ingredients,
-                    ingredientsMap: {},
+                    subsectionOrder: oldRecipe.subsectionOrder,
                     instructions: oldRecipe.instructions,
                     categories: oldRecipe.categories..remove(categoryName),
                     prepTime: oldRecipe.prepTime);
@@ -228,7 +229,7 @@ class HiveRepository {
                 oldRecipe.edit(
                     title: oldRecipe.title,
                     ingredients: oldRecipe.ingredients,
-                    ingredientsMap: {},
+                    subsectionOrder: oldRecipe.subsectionOrder,
                     instructions: oldRecipe.instructions,
                     categories: ["Other"],
                     prepTime: oldRecipe.prepTime);
@@ -236,7 +237,7 @@ class HiveRepository {
                 oldRecipe.edit(
                     title: oldRecipe.title,
                     ingredients: oldRecipe.ingredients,
-                    ingredientsMap: {},
+                    subsectionOrder: oldRecipe.subsectionOrder,
                     instructions: oldRecipe.instructions,
                     categories: oldRecipe.categories..remove(categoryName),
                     prepTime: oldRecipe.prepTime);
@@ -512,7 +513,7 @@ class HiveRepository {
       // Not sure what to do
 
       for (int i = 0; i < 2; i++) {
-        if (archive.files[i].name.contains('recipes')) {
+        if (archive.files[i].name.contains('remcipes')) {
           archive.files[i].writeContent(firstStream);
           firstStream.close();
         } else {
@@ -548,8 +549,12 @@ class HiveRepository {
       await encoder.addFile((File(firstBoxPath)));
       await encoder.addFile((File(secondBoxPath)));
       encoder.close();
-      Share.shareXFiles([XFile("$selectedDirectory/meal_planning.zip", name: "meal_planning.zip")],
-          sharePositionOrigin: Rect.fromLTWH(0, 0, 100.w, 100.h / 2), subject: 'Meal Planning backup file');
+      SharePlus.instance.share(
+        ShareParams(
+            sharePositionOrigin: Rect.fromLTWH(0, 0, 100.w, 100.h / 2),
+            subject: 'Meal Planning backup file',
+            files: [XFile("$selectedDirectory/meal_planning.zip", name: "meal_planning.zip")]),
+      );
 
       remcipesBox = await Hive.openBox<Recipe>('remcipesBox');
       mealPlanmingBox = await Hive.openBox<dynamic>('mealPlanmingBox');

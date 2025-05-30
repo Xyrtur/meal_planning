@@ -27,6 +27,89 @@ class RecipePage extends StatelessWidget {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final ValueNotifier<bool?> deletingRecipe = ValueNotifier<bool?>(false);
 
+  Widget ingredientSubsectionTitle(
+      {required BuildContext context,
+      required bool isViewingRecipe,
+      required GlobalKey<RecipeTextFieldState> fieldKey,
+      required int current,
+      required List<int> subsectionIndices,
+      required String? text}) {
+    return isViewingRecipe
+        ? Text(
+            text!,
+            style: Centre.listText,
+            maxLines: 2,
+          )
+        : Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  context
+                      .read<IngredientSubsectionsKeysCubit>()
+                      .deleteSubsection(ingredientIndex: subsectionIndices[current]);
+
+                  List<int> newSubsectionIndicesList = [...subsectionIndices]..removeAt(current);
+
+                  int ingredientRangeEnd = current + 1 != subsectionIndices.length
+                      ? subsectionIndices[current + 1]
+                      // last of the ingredients
+                      : -1;
+                  int ingredientRangeStart = subsectionIndices[current];
+
+                  // Shift subsections ingredients to end of first section so they don't get absorbed by other subsections
+                  context.read<IngredientsListCubit>().shiftIngredients(
+                      start: ingredientRangeStart,
+                      end: ingredientRangeEnd,
+                      newStart: 2 != subsectionIndices.length ? subsectionIndices[1] : -1);
+                  context.read<RecipeIngredientKeysCubit>().shiftIngredientKeys(
+                      start: ingredientRangeStart,
+                      end: ingredientRangeEnd,
+                      newStart: 2 != subsectionIndices.length ? subsectionIndices[1] : -1);
+
+                  // Shift all subsections by numIngredientsMoved
+                  context.read<IngredientSubsectionsKeysCubit>().shiftIndices(
+                      subsectionDeleted: subsectionIndices[current],
+                      oldIndices: newSubsectionIndicesList,
+                      shift: (ingredientRangeEnd == -1
+                              ? context.read<IngredientsListCubit>().state.length
+                              : ingredientRangeEnd) -
+                          ingredientRangeStart);
+                },
+                behavior: HitTestBehavior.translucent,
+                child: Padding(
+                  padding: EdgeInsets.all(2.w),
+                  child: const Icon(Icons.delete),
+                ),
+              ),
+              SizedBox(
+                width: 50.w,
+                child: RecipeTextField(
+                  key: fieldKey,
+                  text: text,
+                  type: TextFieldType.subsection,
+                ),
+              ),
+            ],
+          );
+  }
+
+  int subsectionItemCount(
+      {required int currLoopNum,
+      required List<int> subsectionIndices,
+      required int lenIngred,
+      required int lenIngredKeys,
+      required bool isViewingRecipe}) {
+    // If editing, there'll be extra add symbol for each subsection, represented by 1 * sortedSubsectionIndices.length
+    // Do not count the very first subsection though
+    return (currLoopNum + 1 != subsectionIndices.length
+            ? subsectionIndices[currLoopNum + 1]
+            : isViewingRecipe
+                ? lenIngred
+                : lenIngredKeys) -
+        subsectionIndices[currLoopNum] +
+        (isViewingRecipe ? 0 : 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     deletingRecipe.addListener(() {
@@ -105,11 +188,17 @@ class RecipePage extends StatelessWidget {
                                           .state
                                           .map((key) => key.currentState!.controller.text));
 
+                                      Map<int, String> newSubsections = context
+                                          .read<IngredientSubsectionsKeysCubit>()
+                                          .state
+                                          .map((ingredientIndex, textfieldKey) => MapEntry(
+                                              ingredientIndex, textfieldKey.currentState?.controller.text ?? "000"));
+
                                       if ((state as EditingRecipe).recipe == null) {
                                         Recipe recipe = Recipe(
                                           title: titleKey.currentState!.controller.text,
                                           ingredients: newIngredients.join("\n"),
-                                          ingredientsMap: {},
+                                          subsectionOrder: newSubsections,
                                           instructions: newInstructions.join("\n"),
                                           categories: context.read<RecipeCategoriesSelectedCubit>().state,
                                           prepTime: prepTimeController.text,
@@ -122,6 +211,8 @@ class RecipePage extends StatelessWidget {
                                         context
                                             .read<RecipeIngredientKeysCubit>()
                                             .replaceList(numKeys: newIngredients.length);
+                                        context.read<IngredientSubsectionsKeysCubit>().replaceList();
+
                                         context.read<RecipeBloc>().add(AddRecipe(recipe));
                                         context.read<AllRecipesBloc>().add(const RecipeAddDeleted());
                                       } else {
@@ -129,7 +220,7 @@ class RecipePage extends StatelessWidget {
                                         recipe.edit(
                                           title: titleKey.currentState!.controller.text,
                                           ingredients: newIngredients.join("\n"),
-                                          ingredientsMap: {},
+                                          subsectionOrder: newSubsections,
                                           instructions: newInstructions.join("\n"),
                                           categories: context.read<RecipeCategoriesSelectedCubit>().state,
                                           prepTime: prepTimeController.text,
@@ -142,6 +233,8 @@ class RecipePage extends StatelessWidget {
                                         context
                                             .read<RecipeIngredientKeysCubit>()
                                             .replaceList(numKeys: newIngredients.length);
+                                        context.read<IngredientSubsectionsKeysCubit>().replaceList();
+
                                         context.read<RecipeBloc>().add(UpdateRecipe(state.recipe!, recipe));
                                         context.read<AllRecipesBloc>().add(const RecipeAddDeleted());
                                       }
@@ -245,7 +338,7 @@ class RecipePage extends StatelessWidget {
                       );
                     }),
                     Padding(
-                      padding: EdgeInsets.only(bottom: 1.h),
+                      padding: EdgeInsets.only(bottom: 3.h),
                       child: Row(
                         children: [
                           Text("Prep time: ", style: Centre.listText),
@@ -272,11 +365,51 @@ class RecipePage extends StatelessWidget {
                       ),
                     ),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           "Ingredients",
                           style: Centre.semiTitleText,
                         ),
+                        state is EditingRecipe
+                            ? GestureDetector(
+                                onTap: () {
+                                  // Add subsection header to the end of the all ingredients and add another empty text field after it
+                                  List<String> editedIngredientsList = context.read<IngredientsListCubit>().state;
+
+                                  context
+                                      .read<IngredientSubsectionsKeysCubit>()
+                                      .addSubsection(ingredientIndex: editedIngredientsList.length);
+                                  context
+                                      .read<RecipeIngredientKeysCubit>()
+                                      .add(pastingIn: false, ingredientOrderNumber: -1, numKeys: 1);
+                                  context.read<IngredientsListCubit>().add(ingredientOrderNumber: -1, ingredient: "");
+                                },
+                                child: Container(
+                                  decoration: ShapeDecoration(
+                                    shadows: [
+                                      BoxShadow(
+                                        color: Centre.shadowbgColor,
+                                        spreadRadius: 1,
+                                        blurRadius: 5,
+                                        offset: const Offset(1, 3),
+                                      ),
+                                    ],
+                                    color: Centre.bgColor,
+                                    shape: const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10))),
+                                  ),
+                                  margin: EdgeInsets.only(bottom: 1.h, right: 2.w),
+                                  padding: EdgeInsets.symmetric(horizontal: 2.w),
+                                  height: 4.h,
+                                  child: Center(
+                                    child: Text(
+                                      "Add Subsection",
+                                      style: Centre.ingredientText,
+                                    ),
+                                  ),
+                                ))
+                            : SizedBox(),
                       ],
                     ),
                     Divider(
@@ -287,81 +420,143 @@ class RecipePage extends StatelessWidget {
                         builder: (_, ingredientKeys) {
                       List<String> editedIngredientsList = context.read<IngredientsListCubit>().state;
 
-                      return SizedBox(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: state is ViewingRecipe ? 6.w : 3.w, vertical: 2.h),
-                          child: MasonryGridView.count(
-                            shrinkWrap: true,
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 1.w,
-                            mainAxisSpacing: 1.h,
-                            itemCount: (state is ViewingRecipe) ? ingredients.length : ingredientKeys.length + 1,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              return index == ingredientKeys.length
-                                  ? GestureDetector(
-                                      onTap: () {
-                                        context
-                                            .read<RecipeIngredientKeysCubit>()
-                                            .add(ingredientOrderNumber: -1, numKeys: 1);
-                                        context
-                                            .read<IngredientsListCubit>()
-                                            .add(ingredientOrderNumber: -1, ingredient: "");
-                                      },
-                                      child: Container(
-                                        padding: EdgeInsets.all(2.w),
-                                        child: const Icon(Icons.add),
-                                      ))
-                                  : Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        state is ViewingRecipe
-                                            ? const Text(
-                                                ' \u2022 ',
-                                                textHeightBehavior: TextHeightBehavior(
-                                                    applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
-                                              )
-                                            : GestureDetector(
-                                                onTap: () {
-                                                  context
-                                                      .read<RecipeIngredientKeysCubit>()
-                                                      .deleteKey(ingredientOrderNumber: index);
-                                                  context
-                                                      .read<IngredientsListCubit>()
-                                                      .delete(ingredientOrderNumber: index);
-                                                },
-                                                behavior: HitTestBehavior.translucent,
-                                                child: Padding(
-                                                  padding: EdgeInsets.all(2.w),
-                                                  child: const Icon(Icons.delete),
-                                                ),
-                                              ),
-                                        state is ViewingRecipe
-                                            ? Expanded(
-                                                child: Text(
-                                                  ingredients[index],
-                                                  style: Centre.ingredientText,
-                                                  maxLines: 3,
-                                                ),
-                                              )
-                                            : Expanded(
-                                                child: RecipeTextField(
-                                                  key: ingredientKeys[index],
-                                                  ingredientOrderNumber: index,
-                                                  type: TextFieldType.ingredient,
-                                                  text: editedIngredientsList.isEmpty
-                                                      ? ""
-                                                      : index >= editedIngredientsList.length
-                                                          ? ""
-                                                          : editedIngredientsList[index],
-                                                ),
-                                              )
-                                      ],
-                                    );
-                            },
+                      return BlocBuilder<IngredientSubsectionsKeysCubit, Map<int, GlobalKey<RecipeTextFieldState>>>(
+                          builder: (_, subsectionKeys) {
+                        List<int> sortedSubsectionIndices = subsectionKeys.keys.toList()..sort();
+                        return SizedBox(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (int i = 0; i < sortedSubsectionIndices.length; i++) ...[
+                                i != 0
+                                    ? ingredientSubsectionTitle(
+                                        context: context,
+                                        isViewingRecipe: state is ViewingRecipe,
+                                        fieldKey: subsectionKeys[sortedSubsectionIndices[i]]!,
+                                        current: i,
+                                        subsectionIndices: sortedSubsectionIndices,
+                                        text: state.recipe?.subsectionOrder[sortedSubsectionIndices[i]])
+                                    : SizedBox(),
+                                i != 0
+                                    ? Padding(
+                                        padding: EdgeInsets.only(right: 20.w),
+                                        child: Divider(
+                                          height: 0.5.h,
+                                          color: Centre.shadowbgColor,
+                                        ),
+                                      )
+                                    : SizedBox(),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: state is ViewingRecipe ? 6.w : 3.w, vertical: 2.h),
+                                  child: MasonryGridView.count(
+                                    shrinkWrap: true,
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 1.w,
+                                    mainAxisSpacing: 1.h,
+                                    itemCount: subsectionItemCount(
+                                        currLoopNum: i,
+                                        subsectionIndices: sortedSubsectionIndices,
+                                        lenIngred: ingredients.length,
+                                        lenIngredKeys: ingredientKeys.length,
+                                        isViewingRecipe: state is ViewingRecipe),
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemBuilder: (context, index) {
+                                      int currItemCount = subsectionItemCount(
+                                          currLoopNum: i,
+                                          subsectionIndices: sortedSubsectionIndices,
+                                          lenIngred: ingredients.length,
+                                          lenIngredKeys: ingredientKeys.length,
+                                          isViewingRecipe: state is ViewingRecipe);
+
+                                      return index == currItemCount - 1 && state is EditingRecipe
+                                          ? GestureDetector(
+                                              onTap: () {
+                                                // Remember currItemCount includes the add button, so subtract 1
+                                                context.read<RecipeIngredientKeysCubit>().add(
+                                                    pastingIn: false,
+                                                    ingredientOrderNumber:
+                                                        sortedSubsectionIndices[i] + currItemCount - 1,
+                                                    numKeys: 1);
+                                                context.read<IngredientsListCubit>().add(
+                                                    ingredientOrderNumber:
+                                                        sortedSubsectionIndices[i] + currItemCount - 1,
+                                                    ingredient: "");
+                                                if (i + 1 != sortedSubsectionIndices.length) {
+                                                  context.read<IngredientSubsectionsKeysCubit>().shiftIndices(
+                                                      oldIndices: sortedSubsectionIndices.sublist(i + 1), shift: 1);
+                                                }
+                                              },
+                                              child: Container(
+                                                padding: EdgeInsets.all(2.w),
+                                                child: const Icon(Icons.add),
+                                              ))
+                                          : Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                state is ViewingRecipe
+                                                    ? const Text(
+                                                        ' \u2022 ',
+                                                        textHeightBehavior: TextHeightBehavior(
+                                                            applyHeightToFirstAscent: false,
+                                                            applyHeightToLastDescent: false),
+                                                      )
+                                                    : GestureDetector(
+                                                        onTap: () {
+                                                          context.read<RecipeIngredientKeysCubit>().deleteKey(
+                                                              ingredientOrderNumber:
+                                                                  sortedSubsectionIndices[i] + index);
+                                                          context.read<IngredientsListCubit>().delete(
+                                                              ingredientOrderNumber:
+                                                                  sortedSubsectionIndices[i] + index);
+
+                                                          if (i + 1 != sortedSubsectionIndices.length) {
+                                                            context.read<IngredientSubsectionsKeysCubit>().shiftIndices(
+                                                                oldIndices: sortedSubsectionIndices.sublist(i + 1),
+                                                                shift: -1);
+                                                          }
+                                                        },
+                                                        behavior: HitTestBehavior.translucent,
+                                                        child: Padding(
+                                                          padding: EdgeInsets.all(2.w),
+                                                          child: const Icon(Icons.delete),
+                                                        ),
+                                                      ),
+                                                state is ViewingRecipe
+                                                    ? Expanded(
+                                                        child: Text(
+                                                          ingredients[sortedSubsectionIndices[i] + index],
+                                                          style: Centre.ingredientText,
+                                                          maxLines: 3,
+                                                        ),
+                                                      )
+                                                    : Expanded(
+                                                        child: RecipeTextField(
+                                                          key: ingredientKeys[sortedSubsectionIndices[i] + index],
+                                                          ingredientOrderNumber: sortedSubsectionIndices[i] + index,
+                                                          type: TextFieldType.ingredient,
+                                                          subsectionsToShift: i + 1 != sortedSubsectionIndices.length
+                                                              ? sortedSubsectionIndices.sublist(i + 1)
+                                                              : [],
+                                                          text: editedIngredientsList.isEmpty
+                                                              ? ""
+                                                              : sortedSubsectionIndices[i] + index >=
+                                                                      editedIngredientsList.length
+                                                                  ? ""
+                                                                  : editedIngredientsList[
+                                                                      sortedSubsectionIndices[i] + index],
+                                                        ),
+                                                      )
+                                              ],
+                                            );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                        ),
-                      );
+                        );
+                      });
                     }),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -533,7 +728,7 @@ class RecipePage extends StatelessWidget {
   }
 }
 
-enum TextFieldType { ingredient, instruction }
+enum TextFieldType { ingredient, instruction, subsection }
 
 class RecipeTextField extends StatefulWidget {
   final List<String>? existingTitles;
@@ -541,8 +736,15 @@ class RecipeTextField extends StatefulWidget {
   final String? text;
   final int? stepNumber;
   final int? ingredientOrderNumber;
+  final List<int>? subsectionsToShift;
   const RecipeTextField(
-      {super.key, this.existingTitles, this.text, this.type, this.stepNumber, this.ingredientOrderNumber});
+      {super.key,
+      this.existingTitles,
+      this.text,
+      this.type,
+      this.stepNumber,
+      this.ingredientOrderNumber,
+      this.subsectionsToShift});
 
   @override
   State<RecipeTextField> createState() => RecipeTextFieldState();
@@ -609,7 +811,11 @@ class RecipeTextFieldState extends State<RecipeTextField> {
                 }
                 context
                     .read<RecipeIngredientKeysCubit>()
-                    .add(numKeys: fields.length, ingredientOrderNumber: widget.ingredientOrderNumber!);
+                    .add(pastingIn: true, numKeys: fields.length, ingredientOrderNumber: widget.ingredientOrderNumber!);
+
+                context
+                    .read<IngredientSubsectionsKeysCubit>()
+                    .shiftIndices(oldIndices: widget.subsectionsToShift!, shift: fields.length);
               }
             } else if (widget.type == TextFieldType.instruction) {
               if (context.mounted) {
@@ -627,6 +833,7 @@ class RecipeTextFieldState extends State<RecipeTextField> {
                 context.read<RecipeInstructionsKeysCubit>().add(numKeys: fields.length, stepNumber: widget.stepNumber!);
               }
             }
+            // if TextFieldType.subsection > do nothing
           },
           // to apply the normal behavior when click on select all
           onSelectAll: null,

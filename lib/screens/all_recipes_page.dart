@@ -48,6 +48,9 @@ class AllRecipesPage extends StatelessWidget {
                                   BlocProvider<RecipeInstructionsKeysCubit>(
                                     create: (_) => RecipeInstructionsKeysCubit([GlobalKey<RecipeTextFieldState>()]),
                                   ),
+                                  BlocProvider<IngredientSubsectionsKeysCubit>(
+                                    create: (_) => IngredientSubsectionsKeysCubit({}),
+                                  ),
                                   BlocProvider.value(
                                     value: context.read<GroceryBloc>(),
                                   ),
@@ -212,6 +215,7 @@ class RecipeListview extends StatelessWidget {
               List<String> instructions = state.recipe.instructions.split('\n');
               final List<GlobalKey<RecipeTextFieldState>> ingredientKeys = [];
               final List<GlobalKey<RecipeTextFieldState>> instructionKeys = [];
+              final Map<int, GlobalKey<RecipeTextFieldState>> subsectionKeys = {};
               // TextFields for each ingredient
               for (int i = 0; i < ingredients.length; i++) {
                 ingredientKeys.add(GlobalKey<RecipeTextFieldState>());
@@ -220,6 +224,12 @@ class RecipeListview extends StatelessWidget {
               // TextFields for each instruction step
               for (int i = 0; i < instructions.length; i++) {
                 instructionKeys.add(GlobalKey<RecipeTextFieldState>());
+              }
+
+              // TextFields for each ingredient subsection
+              final List<int> sortedSubsectionIndices = state.recipe.subsectionOrder.keys.toList()..sort();
+              for (int i in sortedSubsectionIndices) {
+                subsectionKeys[i] = GlobalKey<RecipeTextFieldState>();
               }
 
               GlobalKey<RecipeTextFieldState> titleKey = GlobalKey<RecipeTextFieldState>();
@@ -238,6 +248,9 @@ class RecipeListview extends StatelessWidget {
                             ),
                             BlocProvider<RecipeInstructionsKeysCubit>(
                               create: (_) => RecipeInstructionsKeysCubit(instructionKeys),
+                            ),
+                            BlocProvider<IngredientSubsectionsKeysCubit>(
+                              create: (_) => IngredientSubsectionsKeysCubit(subsectionKeys),
                             ),
                             BlocProvider.value(
                               value: context.read<GroceryBloc>(),

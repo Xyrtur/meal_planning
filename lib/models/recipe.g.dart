@@ -22,7 +22,7 @@ class RecipeAdapter extends TypeAdapter<Recipe> {
       instructions: fields[2] as String,
       categories: (fields[3] as List).cast<String>(),
       prepTime: fields[4] as String,
-      ingredientsMap: (fields[5] as Map?)?.cast<String, String>(),
+      subsectionOrder: (fields[6] as Map).cast<int, String>(),
     );
   }
 
@@ -40,8 +40,8 @@ class RecipeAdapter extends TypeAdapter<Recipe> {
       ..write(obj.categories)
       ..writeByte(4)
       ..write(obj.prepTime)
-      ..writeByte(5)
-      ..write(obj.ingredientsMap);
+      ..writeByte(6)
+      ..write(obj.subsectionOrder);
   }
 
   @override

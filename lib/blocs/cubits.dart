@@ -95,11 +95,15 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
 
   RecipeIngredientKeysCubit(this.keys) : super(keys);
 
-  void add({required int numKeys, required int ingredientOrderNumber}) {
+  void add({required int numKeys, required int ingredientOrderNumber, required bool pastingIn}) {
     final newList = [...state];
-    if (ingredientOrderNumber == -1) {
+    if (!pastingIn) {
       GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
-      newList.add(createdKey);
+      if (ingredientOrderNumber == -1) {
+        newList.add(createdKey);
+      } else {
+        newList.insert(ingredientOrderNumber, createdKey);
+      }
     } else {
       for (int i = 0; i < numKeys; i++) {
         if (i == 0) {
@@ -127,6 +131,18 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
   void deleteKey({required int ingredientOrderNumber}) {
     final newList = [...state];
     newList.removeAt(ingredientOrderNumber);
+    emit(newList);
+  }
+
+  void shiftIngredientKeys({required int start, required int end, required int newStart}) {
+    final newList = [...state];
+    List<GlobalKey<RecipeTextFieldState>> toShift = newList.sublist(start, end == -1 ? newList.length : end);
+    if (newStart == start || newStart == -1 && end == -1) {
+      // do nothing
+    } else {
+      newList.removeRange(start, end == -1 ? newList.length : end);
+      newList.insertAll(newStart, toShift);
+    }
     emit(newList);
   }
 }
@@ -284,6 +300,19 @@ class IngredientsListCubit extends Cubit<List<String>> {
     newList.removeAt(ingredientOrderNumber);
     emit(newList);
   }
+
+  void shiftIngredients({required int start, required int end, required int newStart}) {
+    final newList = [...state];
+    List<String> toShift = newList.sublist(start, end == -1 ? newList.length : end);
+    if (newStart == start || newStart == -1 && end == -1) {
+      // do nothing
+    } else {
+      newList.removeRange(start, end == -1 ? newList.length : end);
+      newList.insertAll(newStart, toShift);
+    }
+
+    emit(newList);
+  }
 }
 
 enum PageSelected { weeklyPlanning, grocery, recipes }
@@ -298,20 +327,52 @@ class NavbarCubit extends Cubit<PageSelected> {
 }
 
 class IngredientSubsectionsKeysCubit extends Cubit<Map<int, GlobalKey<RecipeTextFieldState>>> {
-  final Map<int, GlobalKey<RecipeTextFieldState>> keys;
-  IngredientSubsectionsKeysCubit(this.keys) : super(keys);
+  final Map<int, GlobalKey<RecipeTextFieldState>> subsectionKeys;
+  IngredientSubsectionsKeysCubit(this.subsectionKeys) : super(subsectionKeys);
 
-  void addSubsection({required int atIngredientNumber}) {
+  void addSubsection({required int ingredientIndex}) {
     final newMap = {...state};
     GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
-    newMap[atIngredientNumber] = createdKey;
+    newMap[ingredientIndex] = createdKey;
 
     emit(newMap);
   }
 
-  void deleteSubsection({required int atIngredientNumber}) {
+  void replaceList() {
+    final Map<int, GlobalKey<RecipeTextFieldState>> newMap = {};
+    for (int oldKey in state.keys.toList()..sort()) {
+      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+      newMap[oldKey] = createdKey;
+    }
+
+    emit(newMap);
+  }
+
+  void shiftIndices({int? subsectionDeleted, required List<int> oldIndices, required int shift}) {
     final newMap = {...state};
-    newMap.remove(atIngredientNumber);
+    List<int> newIndices = List.generate(oldIndices.length, (int i) => oldIndices[i] + shift);
+
+    for (int oldIndex in oldIndices) {
+      if (oldIndex == 0) {
+        continue;
+      }
+      if (subsectionDeleted != null && subsectionDeleted < oldIndex) {
+        continue;
+      }
+
+      // Remove old keys, unless rewritten over by new ones that just happen to be same key
+      if (!newIndices.contains(oldIndex)) {
+        newMap.remove(oldIndex);
+      }
+      newMap[oldIndex + shift] = state[oldIndex]!;
+    }
+
+    emit(newMap);
+  }
+
+  void deleteSubsection({required int ingredientIndex}) {
+    final newMap = {...state};
+    newMap.remove(ingredientIndex);
 
     emit(newMap);
   }
