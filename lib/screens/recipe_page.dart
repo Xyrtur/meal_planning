@@ -429,17 +429,20 @@ class RecipePage extends StatelessWidget {
                             children: [
                               for (int i = 0; i < sortedSubsectionIndices.length; i++) ...[
                                 i != 0
-                                    ? ingredientSubsectionTitle(
-                                        context: context,
-                                        isViewingRecipe: state is ViewingRecipe,
-                                        fieldKey: subsectionKeys[sortedSubsectionIndices[i]]!,
-                                        current: i,
-                                        subsectionIndices: sortedSubsectionIndices,
-                                        text: state.recipe?.subsectionOrder[sortedSubsectionIndices[i]])
+                                    ? Padding(
+                                        padding: EdgeInsets.only(left: state is ViewingRecipe ? 5.w : 0),
+                                        child: ingredientSubsectionTitle(
+                                            context: context,
+                                            isViewingRecipe: state is ViewingRecipe,
+                                            fieldKey: subsectionKeys[sortedSubsectionIndices[i]]!,
+                                            current: i,
+                                            subsectionIndices: sortedSubsectionIndices,
+                                            text: state.recipe?.subsectionOrder[sortedSubsectionIndices[i]]),
+                                      )
                                     : SizedBox(),
                                 i != 0
                                     ? Padding(
-                                        padding: EdgeInsets.only(right: 20.w),
+                                        padding: EdgeInsets.only(right: 20.w, left: 3.w),
                                         child: Divider(
                                           height: 0.5.h,
                                           color: Centre.shadowbgColor,
