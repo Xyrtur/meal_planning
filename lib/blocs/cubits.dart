@@ -3,46 +3,62 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:meal_planning/screens/recipe_page.dart';
 import 'package:meal_planning/utils/hive_repository.dart';
 
+/// Handles state for delete toggle on grocery page
 class ToggleGroceryDeletingCubit extends Cubit<bool> {
   ToggleGroceryDeletingCubit() : super(false);
   void toggle() => emit(!state);
 }
 
+/// Keeps track of add entry textfield tile on the grocery page
+///
+/// Only one add textfield is allowed at a time no matter what category is being edited.
+/// State is the name of the category where the add entry tile exists. State starts out empty until the user clicks the add button on a category.
 class GroceryAddEntryCubit extends Cubit<String> {
   GroceryAddEntryCubit() : super("");
-  // [bool AddEntryTileExists, String CategoryWhereItExists]
+
+  /// The [addEntryInCategory] is the name of the category where add tile currently is
+  ///
+  /// If [addEntryInCategory] is empty, the add tile does not exist on page.
   void update(String addEntryInCategory) {
     emit(addEntryInCategory);
   }
 }
 
+/// Keeps track of the order that the user keeps the categories in.
 class GroceryCategoryOrderCubit extends Cubit<List<String>> {
   final HiveRepository hive;
   GroceryCategoryOrderCubit(this.hive) : super(hive.groceryCategoryOrder);
 
+  /// Updates the state given [newOrder]
   void update(List<String> newOrder) {
     hive.updateGroceryCategoryOrder(newOrder: newOrder);
     emit(newOrder);
   }
 }
 
+/// This cubit tracks the info of the ingredient the user is currently dragging around on the Grocery page.
+///
+/// User can change ingredient order within origin category, or move ingredient to different category though cannot control index in new category
+///
+/// State stores 3 different variables:
+/// - [draggingIndex] is the index of the category being dragged. If null, nothing is being dragged.
+/// - [hoveringIndex] is the index of the category the user is hovering over
+/// - [originCategory] is name of the category from which the ingredient came from.
 class GroceryDraggingItemCubit extends Cubit<List<dynamic>> {
   GroceryDraggingItemCubit() : super([null, null]);
-  // int? draggingIndex, int? hoverIndex
 
-  void update({required int? draggingIndex, required int? hoveringIndex, required String? originCategory}) {
+  void update(
+      {required int? draggingIndex,
+      required int? hoveringIndex,
+      required String? originCategory}) {
     emit([draggingIndex, hoveringIndex, originCategory]);
   }
 }
 
-class GroceryScrollDraggingCubit extends Cubit<bool> {
-  GroceryScrollDraggingCubit() : super(false);
-
-  void update({required bool isDragging}) {
-    emit(isDragging);
-  }
-}
-
+/// This cubit tracks using an ingredient to hover over another category in the Grocery page, using the category name.
+///
+/// Cannot use _hoveringIndex_ from _GroceryDraggingItemCubit_ because categories will not have their own unique index due to dragging.
+/// This cubit is used to know when the category is being hovered, so that the color can be faded to match
 class GroceryCategoryHover extends Cubit<String> {
   GroceryCategoryHover() : super("");
 
@@ -51,6 +67,7 @@ class GroceryCategoryHover extends Cubit<String> {
   }
 }
 
+/// This cubit tracks using an ingredient to hover over a category in the dialog for adding recipe ingredients to the grocery list.
 class IngredientToGroceryCategoryHover extends Cubit<String> {
   IngredientToGroceryCategoryHover() : super("");
 
@@ -59,6 +76,10 @@ class IngredientToGroceryCategoryHover extends Cubit<String> {
   }
 }
 
+/// This cubit tracks what category name is being edited.
+///
+/// [type] can vary between _recipe_, _grocery_, and _generic_.
+/// [name] is the original name of what is being edited. Unique names only.
 class SettingsEditingTextCubit extends Cubit<List<String>> {
   SettingsEditingTextCubit() : super(["", ""]);
 
@@ -67,6 +88,9 @@ class SettingsEditingTextCubit extends Cubit<List<String>> {
   }
 }
 
+/// This cubit tracks what color is selected in the color dialog on the settings page.
+///
+/// The initial state is the old color of the category.
 class SettingsAddColorCubit extends Cubit<int?> {
   final int? color;
   SettingsAddColorCubit(this.color) : super(color);
@@ -76,6 +100,9 @@ class SettingsAddColorCubit extends Cubit<int?> {
   }
 }
 
+/// This cubit tracks the categories assigned to a recipe on the Recipe page.
+///
+/// State tracks the list of categories
 class RecipeCategoriesSelectedCubit extends Cubit<List<String>> {
   final List<String> categories;
   RecipeCategoriesSelectedCubit(this.categories) : super(categories);
@@ -90,15 +117,21 @@ class RecipeCategoriesSelectedCubit extends Cubit<List<String>> {
   }
 }
 
-class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+///
+class RecipeIngredientKeysCubit
+    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeIngredientKeysCubit(this.keys) : super(keys);
 
-  void add({required int numKeys, required int ingredientOrderNumber, required bool pastingIn}) {
+  void add(
+      {required int numKeys,
+      required int ingredientOrderNumber,
+      required bool pastingIn}) {
     final newList = [...state];
     if (!pastingIn) {
-      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
       if (ingredientOrderNumber == -1) {
         newList.add(createdKey);
       } else {
@@ -107,10 +140,12 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
     } else {
       for (int i = 0; i < numKeys; i++) {
         if (i == 0) {
-          GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+          GlobalKey<RecipeTextFieldState> createdKey =
+              GlobalKey<RecipeTextFieldState>();
           newList[ingredientOrderNumber] = createdKey;
         } else {
-          GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+          GlobalKey<RecipeTextFieldState> createdKey =
+              GlobalKey<RecipeTextFieldState>();
           newList.insert(ingredientOrderNumber + i, createdKey);
         }
       }
@@ -121,7 +156,8 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
   void replaceList({required int numKeys}) {
     final List<GlobalKey<RecipeTextFieldState>> newList = [];
     for (int i = 0; i < numKeys; i++) {
-      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
       newList.add(createdKey);
     }
 
@@ -134,9 +170,11 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
     emit(newList);
   }
 
-  void shiftIngredientKeys({required int start, required int end, required int newStart}) {
+  void shiftIngredientKeys(
+      {required int start, required int end, required int newStart}) {
     final newList = [...state];
-    List<GlobalKey<RecipeTextFieldState>> toShift = newList.sublist(start, end == -1 ? newList.length : end);
+    List<GlobalKey<RecipeTextFieldState>> toShift =
+        newList.sublist(start, end == -1 ? newList.length : end);
     if (newStart == start || newStart == -1 && end == -1) {
       // do nothing
     } else {
@@ -147,7 +185,8 @@ class RecipeIngredientKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldStat
   }
 }
 
-class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
+class RecipeInstructionsKeysCubit
+    extends Cubit<List<GlobalKey<RecipeTextFieldState>>> {
   final List<GlobalKey<RecipeTextFieldState>> keys;
 
   RecipeInstructionsKeysCubit(this.keys) : super(keys);
@@ -155,15 +194,18 @@ class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldSt
   void add({required int numKeys, required int stepNumber}) {
     final newList = [...state];
     if (stepNumber == -1) {
-      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
       newList.add(createdKey);
     } else {
       for (int i = 0; i < numKeys; i++) {
         if (i == 0) {
-          GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+          GlobalKey<RecipeTextFieldState> createdKey =
+              GlobalKey<RecipeTextFieldState>();
           newList[stepNumber] = createdKey;
         } else {
-          GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+          GlobalKey<RecipeTextFieldState> createdKey =
+              GlobalKey<RecipeTextFieldState>();
           newList.insert(stepNumber + i, createdKey);
         }
       }
@@ -174,7 +216,8 @@ class RecipeInstructionsKeysCubit extends Cubit<List<GlobalKey<RecipeTextFieldSt
   void replaceList({required int numKeys}) {
     final List<GlobalKey<RecipeTextFieldState>> newList = [];
     for (int i = 0; i < numKeys; i++) {
-      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
       newList.add(createdKey);
     }
 
@@ -281,7 +324,8 @@ class IngredientsListCubit extends Cubit<List<String>> {
     emit(newList);
   }
 
-  void replace({required String ingredient, required int ingredientOrderNumber}) {
+  void replace(
+      {required String ingredient, required int ingredientOrderNumber}) {
     final newList = [...state];
     if (newList.isEmpty) {
       newList.add(ingredient);
@@ -301,9 +345,11 @@ class IngredientsListCubit extends Cubit<List<String>> {
     emit(newList);
   }
 
-  void shiftIngredients({required int start, required int end, required int newStart}) {
+  void shiftIngredients(
+      {required int start, required int end, required int newStart}) {
     final newList = [...state];
-    List<String> toShift = newList.sublist(start, end == -1 ? newList.length : end);
+    List<String> toShift =
+        newList.sublist(start, end == -1 ? newList.length : end);
     if (newStart == start || newStart == -1 && end == -1) {
       // do nothing
     } else {
@@ -326,13 +372,15 @@ class NavbarCubit extends Cubit<PageSelected> {
   }
 }
 
-class IngredientSubsectionsKeysCubit extends Cubit<Map<int, GlobalKey<RecipeTextFieldState>>> {
+class IngredientSubsectionsKeysCubit
+    extends Cubit<Map<int, GlobalKey<RecipeTextFieldState>>> {
   final Map<int, GlobalKey<RecipeTextFieldState>> subsectionKeys;
   IngredientSubsectionsKeysCubit(this.subsectionKeys) : super(subsectionKeys);
 
   void addSubsection({required int ingredientIndex}) {
     final newMap = {...state};
-    GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+    GlobalKey<RecipeTextFieldState> createdKey =
+        GlobalKey<RecipeTextFieldState>();
     newMap[ingredientIndex] = createdKey;
 
     emit(newMap);
@@ -341,16 +389,21 @@ class IngredientSubsectionsKeysCubit extends Cubit<Map<int, GlobalKey<RecipeText
   void replaceList() {
     final Map<int, GlobalKey<RecipeTextFieldState>> newMap = {};
     for (int oldKey in state.keys.toList()..sort()) {
-      GlobalKey<RecipeTextFieldState> createdKey = GlobalKey<RecipeTextFieldState>();
+      GlobalKey<RecipeTextFieldState> createdKey =
+          GlobalKey<RecipeTextFieldState>();
       newMap[oldKey] = createdKey;
     }
 
     emit(newMap);
   }
 
-  void shiftIndices({int? subsectionDeleted, required List<int> oldIndices, required int shift}) {
+  void shiftIndices(
+      {int? subsectionDeleted,
+      required List<int> oldIndices,
+      required int shift}) {
     final newMap = {...state};
-    List<int> newIndices = List.generate(oldIndices.length, (int i) => oldIndices[i] + shift);
+    List<int> newIndices =
+        List.generate(oldIndices.length, (int i) => oldIndices[i] + shift);
 
     for (int oldIndex in oldIndices) {
       if (oldIndex == 0) {

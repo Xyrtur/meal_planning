@@ -79,9 +79,6 @@ class _LandingPageViewState extends State<LandingPageView> {
                   BlocProvider<GroceryDraggingItemCubit>(
                     create: (_) => GroceryDraggingItemCubit(),
                   ),
-                  BlocProvider<GroceryScrollDraggingCubit>(
-                    create: (_) => GroceryScrollDraggingCubit(),
-                  ),
                   BlocProvider<GroceryCategoryHover>(
                     create: (_) => GroceryCategoryHover(),
                   ),

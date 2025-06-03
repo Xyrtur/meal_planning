@@ -54,34 +54,50 @@ class HiveRepository {
     mealPlanmingBox = Hive.box<dynamic>('mealPlanmingBox');
 
     recipeList = remcipesBox.values.cast<Recipe>().toList();
-    for (Recipe recipe in recipeList) {
-      recipe.edit(
-          title: recipe.title,
-          ingredients: recipe.ingredients,
-          subsectionOrder: {0: "000"},
-          instructions: recipe.instructions,
-          categories: recipe.categories,
-          prepTime: recipe.prepTime);
-      recipe.save();
-    }
-    recipeList = remcipesBox.values.cast<Recipe>().toList();
-    for (Recipe recipe in recipeList) {
-      recipe.save();
-    }
+    // Edit the repository in case of new recipe fields
 
-    recipeCategoriesMap = (mealPlanmingBox.get('recipeCategoriesMap') ?? <String, int>{}).cast<String, int>();
-    groceryCategoriesMap = (mealPlanmingBox.get('groceryCategoriesMap') ?? <String, int>{}).cast<String, int>();
-    genericCategoriesMap = (mealPlanmingBox.get('genericCategoriesMap') ?? <String, int>{}).cast<String, int>();
+    // for (Recipe recipe in recipeList) {
+    //   recipe.edit(
+    //       title: recipe.title,
+    //       ingredients: recipe.ingredients,
+    //       subsectionOrder: recipe.subsectionOrder,
+    //       instructions: recipe.instructions,
+    //       categories: recipe.categories,
+    //       prepTime: recipe.prepTime);
+    //   recipe.save();
+    // }
+    // recipeList = remcipesBox.values.cast<Recipe>().toList();
+    // for (Recipe recipe in recipeList) {
+    //   recipe.save();
+    // }
+
+    // Create map for settings categories
+    recipeCategoriesMap =
+        (mealPlanmingBox.get('recipeCategoriesMap') ?? <String, int>{})
+            .cast<String, int>();
+    groceryCategoriesMap =
+        (mealPlanmingBox.get('groceryCategoriesMap') ?? <String, int>{})
+            .cast<String, int>();
+    genericCategoriesMap =
+        (mealPlanmingBox.get('genericCategoriesMap') ?? <String, int>{})
+            .cast<String, int>();
+
+    // Create maps for grocery list page
     (mealPlanmingBox.get('groceryItemsMap') ?? {}).forEach((key, value) {
       if (key is String && value is List<dynamic>) {
         groceryItemsMap[key] = value.whereType<GroceryItem>().toList();
       }
     });
+    groceryCategoryOrder =
+        (mealPlanmingBox.get('groceryCategoryOrder') ?? []).cast<String>();
 
-    currentWeekRanges = (mealPlanmingBox.get('currentWeekRanges') ?? []).cast<DateTime>();
-    weeklyMealsList = (mealPlanmingBox.get('weeklyMealsList') ?? []).cast<String>();
-    groceryCategoryOrder = (mealPlanmingBox.get('groceryCategoryOrder') ?? []).cast<String>();
+    // Create lists used in daily meal planning page
+    currentWeekRanges =
+        (mealPlanmingBox.get('currentWeekRanges') ?? []).cast<DateTime>();
+    weeklyMealsList =
+        (mealPlanmingBox.get('weeklyMealsList') ?? []).cast<String>();
 
+    // Clear these lists to re-populate on importing files
     recipeTitlestoRecipeMap.clear();
     weeklyMealsSplit.clear();
     recipeCategoriesToRecipeTitlesMap.clear();
@@ -101,10 +117,14 @@ class HiveRepository {
     // If there are no week ranges set OR today's date is not within the stored ranges
     if (currentWeekRanges.isEmpty ||
         !(DateTime.now().isBetweenDates(
-            currentWeekRanges[0], currentWeekRanges.length == 6 ? currentWeekRanges[5] : currentWeekRanges[3]))) {
+            currentWeekRanges[0],
+            currentWeekRanges.length == 6
+                ? currentWeekRanges[5]
+                : currentWeekRanges[3]))) {
       currentWeekRanges.clear();
       weeklyMealsList.clear();
-      DateTime startOfRanges = DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
+      DateTime startOfRanges =
+          DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1));
       currentWeekRanges.add(startOfRanges);
       currentWeekRanges.add(startOfRanges.add(const Duration(days: 6)));
 
@@ -121,12 +141,14 @@ class HiveRepository {
       }
     } else {
       // Prune the list
-      if (DateTime.now().isBetweenDates(currentWeekRanges[2], currentWeekRanges[3])) {
+      if (DateTime.now()
+          .isBetweenDates(currentWeekRanges[2], currentWeekRanges[3])) {
         // Lops off first week
         currentWeekRanges.removeRange(0, 2);
         weeklyMealsList.removeRange(0, 35);
       } else if (currentWeekRanges.length == 6 &&
-          DateTime.now().isBetweenDates(currentWeekRanges[4], currentWeekRanges[5])) {
+          DateTime.now()
+              .isBetweenDates(currentWeekRanges[4], currentWeekRanges[5])) {
         // Lops off first and second week
         currentWeekRanges.removeRange(0, 4);
         weeklyMealsList.removeRange(0, 70);
@@ -136,14 +158,18 @@ class HiveRepository {
 
       // If only one week is left, add a second
       if (currentWeekRanges.length == 2) {
-        currentWeekRanges.add(currentWeekRanges[0].add(const Duration(days: 7)));
-        currentWeekRanges.add(currentWeekRanges[0].add(const Duration(days: 13)));
+        currentWeekRanges
+            .add(currentWeekRanges[0].add(const Duration(days: 7)));
+        currentWeekRanges
+            .add(currentWeekRanges[0].add(const Duration(days: 13)));
         weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
       // Add a third week only if nearing the end of the first week
       if (DateTime.now().weekday >= 5 && currentWeekRanges.length == 4) {
-        currentWeekRanges.add(currentWeekRanges[0].add(const Duration(days: 14)));
-        currentWeekRanges.add(currentWeekRanges[0].add(const Duration(days: 20)));
+        currentWeekRanges
+            .add(currentWeekRanges[0].add(const Duration(days: 14)));
+        currentWeekRanges
+            .add(currentWeekRanges[0].add(const Duration(days: 20)));
         weeklyMealsList.addAll(List.filled(5 * 7, ""));
       }
     }
@@ -166,13 +192,16 @@ class HiveRepository {
   }
 
   // Settings page
-  void deleteCategory({required CategoryType type, required String categoryName}) {
+  void deleteCategory(
+      {required CategoryType type, required String categoryName}) {
     switch (type) {
       case CategoryType.grocery:
         groceryCategoriesMap.remove(categoryName);
         groceryCategoryOrder.remove(categoryName);
         if (groceryItemsMap[categoryName]!.isNotEmpty) {
-          groceryItemsMap.update("Other", (list) => list..addAll(groceryItemsMap[categoryName]!), ifAbsent: () {
+          groceryItemsMap.update(
+              "Other", (list) => list..addAll(groceryItemsMap[categoryName]!),
+              ifAbsent: () {
             groceryCategoriesMap["Other"] = Colors.blueGrey.value;
             groceryCategoryOrder.add("Other");
             return groceryItemsMap[categoryName]!;
@@ -192,7 +221,8 @@ class HiveRepository {
         // If the category is not empty, add the "Other" category to the recipe if it has no other categories attached to it
         if (recipeCategoriesToRecipeTitlesMap[categoryName]!.isNotEmpty) {
           recipeCategoriesToRecipeTitlesMap.update("Other", (list) {
-            for (String recipeName in recipeCategoriesToRecipeTitlesMap[categoryName]!) {
+            for (String recipeName
+                in recipeCategoriesToRecipeTitlesMap[categoryName]!) {
               Recipe oldRecipe = recipeTitlestoRecipeMap[recipeName]!;
 
               if (recipeTitlestoRecipeMap[recipeName]!.categories.length == 1) {
@@ -224,7 +254,8 @@ class HiveRepository {
           }, ifAbsent: () {
             recipeCategoriesMap["Other"] = Colors.blueGrey.value;
             List<String> list = [];
-            for (String recipeName in recipeCategoriesToRecipeTitlesMap[categoryName]!) {
+            for (String recipeName
+                in recipeCategoriesToRecipeTitlesMap[categoryName]!) {
               Recipe oldRecipe = recipeTitlestoRecipeMap[recipeName]!;
 
               if (recipeTitlestoRecipeMap[recipeName]!.categories.length == 1) {
@@ -274,7 +305,10 @@ class HiveRepository {
     }
   }
 
-  void addCategory({required CategoryType type, required String categoryName, required int color}) {
+  void addCategory(
+      {required CategoryType type,
+      required String categoryName,
+      required int color}) {
     switch (type) {
       case CategoryType.grocery:
         groceryCategoriesMap[categoryName] = color;
@@ -300,7 +334,11 @@ class HiveRepository {
     }
   }
 
-  void updateCategory({required CategoryType type, required String oldName, String? newName, int? color}) {
+  void updateCategory(
+      {required CategoryType type,
+      required String oldName,
+      String? newName,
+      int? color}) {
     switch (type) {
       case CategoryType.grocery:
         if (color != null) {
@@ -323,7 +361,8 @@ class HiveRepository {
         } else {
           int val = recipeCategoriesMap.remove(oldName)!;
           recipeCategoriesMap[newName!] = val;
-          List<String> items = recipeCategoriesToRecipeTitlesMap.remove(oldName)!;
+          List<String> items =
+              recipeCategoriesToRecipeTitlesMap.remove(oldName)!;
           recipeCategoriesToRecipeTitlesMap[newName] = items;
           for (String recipeTitle in items) {
             recipeTitlestoRecipeMap[recipeTitle]!.categories.remove(oldName);
@@ -397,7 +436,9 @@ class HiveRepository {
     mealPlanmingBox.put('groceryItemsMap', groceryItemsMap);
   }
 
-  void deleteGroceryItems({required Map<String, List<GroceryItem>> itemsToDelete, required bool clearAll}) {
+  void deleteGroceryItems(
+      {required Map<String, List<GroceryItem>> itemsToDelete,
+      required bool clearAll}) {
     if (clearAll) {
       for (String category in groceryItemsMap.keys) {
         groceryItemsMap[category]!.clear();
@@ -441,7 +482,8 @@ class HiveRepository {
     recipe.delete();
   }
 
-  void updateRecipe({required Recipe oldRecipe, required Recipe updatedRecipe}) {
+  void updateRecipe(
+      {required Recipe oldRecipe, required Recipe updatedRecipe}) {
     updatedRecipe.save();
     recipeList.remove(oldRecipe);
     recipeList.add(updatedRecipe);
@@ -467,8 +509,9 @@ class HiveRepository {
     // If any data is present in the app, export a backup for the user
     if (mealPlanmingBox.isNotEmpty || remcipesBox.isNotEmpty) {
       // Get a directory to export to
-      String? selectedDirectory =
-          isAndroid ? (await getExternalStorageDirectory())?.path : (await getApplicationDocumentsDirectory()).path;
+      String? selectedDirectory = isAndroid
+          ? (await getExternalStorageDirectory())?.path
+          : (await getApplicationDocumentsDirectory()).path;
 
       if (selectedDirectory == null) {
         return false;
@@ -494,8 +537,10 @@ class HiveRepository {
 
     // Get the user to pick a zip file
     FilePicker.platform.clearTemporaryFiles();
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(dialogTitle: "Choose zip file", type: FileType.custom, allowedExtensions: ['zip']);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        dialogTitle: "Choose zip file",
+        type: FileType.custom,
+        allowedExtensions: ['zip']);
 
     if (result != null) {
       await remcipesBox.close();
@@ -538,8 +583,9 @@ class HiveRepository {
     // Permission.storage.request();
     // if (await Permission.storage.request().isGranted) {
     //   {
-    String? selectedDirectory =
-        isAndroid ? (await getExternalStorageDirectory())?.path : (await getApplicationDocumentsDirectory()).path;
+    String? selectedDirectory = isAndroid
+        ? (await getExternalStorageDirectory())?.path
+        : (await getApplicationDocumentsDirectory()).path;
     if (selectedDirectory != null) {
       var encoder = ZipFileEncoder();
       encoder.create("$selectedDirectory/meal_planning.zip");
@@ -556,7 +602,10 @@ class HiveRepository {
         ShareParams(
             sharePositionOrigin: Rect.fromLTWH(0, 0, 100.w, 100.h / 2),
             subject: 'Meal Planning backup file',
-            files: [XFile("$selectedDirectory/meal_planning.zip", name: "meal_planning.zip")]),
+            files: [
+              XFile("$selectedDirectory/meal_planning.zip",
+                  name: "meal_planning.zip")
+            ]),
       );
 
       remcipesBox = await Hive.openBox<Recipe>('remcipesBox');
