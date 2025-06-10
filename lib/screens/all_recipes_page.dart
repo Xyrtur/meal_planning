@@ -139,14 +139,17 @@ class FilterArea extends StatelessWidget {
       child: BlocBuilder<AllRecipesBloc, AllRecipesState>(buildWhen: (previous, current) {
         return current is FiltersChanged;
       }, builder: (context, state) {
-        return Wrap(spacing: 2.w, runSpacing: 1.h, children: [
-          Text(
-            "Filters:",
-            style: Centre.semiTitleText,
-          ),
-          for (MapEntry<String, int?> item in state.toggledCategories.entries)
-            filterBtn(color: item.value, name: item.key, context: context)
-        ]);
+        return Padding(
+          padding: EdgeInsets.only(left: 5.w, right: 5.w, top: 2.h),
+          child: Wrap(spacing: 2.w, runSpacing: 1.h, children: [
+            Text(
+              "Filters:",
+              style: Centre.semiTitleText,
+            ),
+            for (MapEntry<String, int?> item in state.toggledCategories.entries)
+              filterBtn(color: item.value, name: item.key, context: context)
+          ]),
+        );
       }),
     );
   }

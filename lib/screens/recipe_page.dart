@@ -639,7 +639,7 @@ class RecipePage extends StatelessWidget {
                                         Padding(
                                           padding: EdgeInsets.only(
                                               right: state is EditingRecipe ? 4.w : 2.w,
-                                              left: state is EditingRecipe ? 0 : 5.w),
+                                              left: state is EditingRecipe ? 0 : 2.w),
                                           child: Row(
                                             children: [
                                               Column(
