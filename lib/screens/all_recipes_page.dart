@@ -49,7 +49,8 @@ class AllRecipesPage extends StatelessWidget {
                                     create: (_) => RecipeInstructionsKeysCubit([GlobalKey<RecipeTextFieldState>()]),
                                   ),
                                   BlocProvider<IngredientSubsectionsKeysCubit>(
-                                    create: (_) => IngredientSubsectionsKeysCubit({}),
+                                    create: (_) =>
+                                        IngredientSubsectionsKeysCubit({0: GlobalKey<RecipeTextFieldState>()}),
                                   ),
                                   BlocProvider.value(
                                     value: context.read<GroceryBloc>(),
