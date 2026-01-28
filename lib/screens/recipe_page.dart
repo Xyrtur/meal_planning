@@ -216,6 +216,7 @@ class RecipePage extends StatelessWidget {
                                         context.read<RecipeBloc>().add(AddRecipe(recipe));
                                         context.read<AllRecipesBloc>().add(const RecipeAddDeleted());
                                       } else {
+                                        Recipe oldRecipe = state.recipe!.copy();
                                         Recipe recipe = state.recipe!;
                                         recipe.edit(
                                           title: titleKey.currentState!.controller.text,
@@ -235,7 +236,7 @@ class RecipePage extends StatelessWidget {
                                             .replaceList(numKeys: newIngredients.length);
                                         context.read<IngredientSubsectionsKeysCubit>().replaceList();
 
-                                        context.read<RecipeBloc>().add(UpdateRecipe(state.recipe!, recipe));
+                                        context.read<RecipeBloc>().add(UpdateRecipe(oldRecipe, recipe));
                                         context.read<AllRecipesBloc>().add(const RecipeAddDeleted());
                                       }
                                     } else {

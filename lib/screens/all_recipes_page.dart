@@ -285,7 +285,8 @@ class RecipeListview extends StatelessWidget {
         }, buildWhen: (previous, current) {
           return current is! OpeningRecipePage;
         }, builder: (context, state) {
-          List<String> sortedRecipeNames = state.filteredRecipeMap.keys.toList()..sort();
+          List<String> sortedRecipeNames = state.filteredRecipeMap.keys.toList()
+            ..sort((recipe1, recipe2) => recipe1.toLowerCase().compareTo(recipe2.toLowerCase()));
           return RawScrollbar(
             padding: EdgeInsets.symmetric(horizontal: 2.w),
             trackVisibility: true,

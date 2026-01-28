@@ -57,7 +57,17 @@ class Recipe extends HiveObject with Compare<Recipe> {
   // Used when sorting a list into alphabetical order
   @override
   int compareTo(Recipe other) {
-    return title.compareTo(other.title);
+    return title.toLowerCase().compareTo(other.title.toLowerCase());
+  }
+
+  Recipe copy() {
+    return Recipe(
+        title: title,
+        ingredients: ingredients,
+        instructions: instructions,
+        categories: categories,
+        prepTime: prepTime,
+        subsectionOrder: subsectionOrder);
   }
 
   @override
